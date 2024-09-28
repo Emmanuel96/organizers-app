@@ -1,0 +1,85 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-event-heading" data-cy="EventCreateUpdateHeading">Create or edit a Event</h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        @if (editForm.controls.id.value !== null) {
+          <div class="mb-3">
+            <label class="form-label" for="field_id">ID</label>
+            <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+          </div>
+        }
+
+        <div class="mb-3">
+          <label class="form-label" for="field_event_date">Event Date</label>
+          <div class="d-flex">
+            <input
+              id="field_event_date"
+              data-cy="event_date"
+              type="datetime-local"
+              class="form-control"
+              name="event_date"
+              formControlName="event_date"
+              placeholder="YYYY-MM-DD HH:mm"
+            />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_event_location">Event Location</label>
+          <input
+            type="text"
+            class="form-control"
+            name="event_location"
+            id="field_event_location"
+            data-cy="event_location"
+            formControlName="event_location"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_event_description">Event Description</label>
+          <input
+            type="text"
+            class="form-control"
+            name="event_description"
+            id="field_event_description"
+            data-cy="event_description"
+            formControlName="event_description"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_event_group_name">Event Group Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="event_group_name"
+            id="field_event_group_name"
+            data-cy="event_group_name"
+            formControlName="event_group_name"
+          />
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span>Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span>Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

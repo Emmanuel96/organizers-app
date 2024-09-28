@@ -1,0 +1,31 @@
+{
+  "annotations": {
+    "changelogDate": "20240928190333"
+  },
+  "fields": [
+    {
+      "fieldName": "event_date",
+      "fieldType": "ZonedDateTime",
+      "fieldValidateRules": []
+    },
+    {
+      "fieldName": "event_location",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "event_description",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "event_group_name",
+      "fieldType": "String",
+      "fieldValidateRules": []
+    }
+  ],
+  "name": "Event",
+  "pagination": "no",
+  "readOnly": false,
+  "relationships": [],
+  "searchEngine": "no",
+  "service": "no"
+}

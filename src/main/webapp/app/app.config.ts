@@ -1,5 +1,6 @@
 import { ApplicationConfig, LOCALE_ID, importProvidersFrom, inject } from '@angular/core';
 import { BrowserModule, Title } from '@angular/platform-browser';
+import { FullCalendarModule } from '@fullcalendar/angular';
 import {
   NavigationError,
   Router,
@@ -45,7 +46,7 @@ if (DEBUG_INFO_ENABLED) {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes, ...routerFeatures),
-    importProvidersFrom(BrowserModule),
+    importProvidersFrom(BrowserModule, FullCalendarModule),
     // Set this to true to enable service worker (PWA)
     importProvidersFrom(ServiceWorkerModule.register('ngsw-worker.js', { enabled: false })),
     provideHttpClient(withInterceptorsFromDi()),

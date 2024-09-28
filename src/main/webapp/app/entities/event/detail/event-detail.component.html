@@ -1,0 +1,46 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (event(); as eventRef) {
+      <div>
+        <h2 data-cy="eventDetailsHeading"><span>Event</span></h2>
+
+        <hr />
+
+        <jhi-alert-error></jhi-alert-error>
+
+        <jhi-alert></jhi-alert>
+
+        <dl class="row-md jh-entity-details">
+          <dt><span>ID</span></dt>
+          <dd>
+            <span>{{ eventRef.id }}</span>
+          </dd>
+          <dt><span>Event Date</span></dt>
+          <dd>
+            <span>{{ eventRef.event_date | formatMediumDatetime }}</span>
+          </dd>
+          <dt><span>Event Location</span></dt>
+          <dd>
+            <span>{{ eventRef.event_location }}</span>
+          </dd>
+          <dt><span>Event Description</span></dt>
+          <dd>
+            <span>{{ eventRef.event_description }}</span>
+          </dd>
+          <dt><span>Event Group Name</span></dt>
+          <dd>
+            <span>{{ eventRef.event_group_name }}</span>
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span>Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/event', eventRef.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span>Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>
