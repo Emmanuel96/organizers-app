@@ -277,6 +277,23 @@
             <artifactId>postgresql</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream-test-binder</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>jdbc</artifactId>
             <scope>test</scope>
@@ -660,15 +677,6 @@
                             <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
                             <user>1000</user>
                         </container>
-                        <extraDirectories>
-                            <paths>src/main/docker/jib</paths>
-                            <permissions>
-                                <permission>
-                                    <file>/entrypoint.sh</file>
-                                    <mode>755</mode>
-                                </permission>
-                            </permissions>
-                        </extraDirectories>
                         <pluginExtensions>
                             <pluginExtension>
                                 <implementation>com.google.cloud.tools.jib.maven.extension.springboot.JibSpringBootExtension</implementation>
@@ -853,19 +861,6 @@
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-devtools</artifactId>
-                    <optional>true</optional>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>docker-compose</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-docker-compose</artifactId>
                     <optional>true</optional>
                 </dependency>
             </dependencies>
@@ -1171,6 +1166,26 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <!--
+                Profile for tracing requests with Zipkin.
+            -->
+            <id>zipkin</id>
+            <dependencies>
+                <dependency>
+                    <groupId>io.micrometer</groupId>
+                    <artifactId>micrometer-tracing</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>io.micrometer</groupId>
+                    <artifactId>micrometer-tracing-bridge-brave</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>io.zipkin.reporter2</groupId>
+                    <artifactId>zipkin-reporter-brave</artifactId>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>
