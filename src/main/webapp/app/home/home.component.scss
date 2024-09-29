@@ -2,14 +2,6 @@
 Main page styles
 ========================================================================== */
 
-.hipster {
-  display: inline-block;
-  width: 347px;
-  height: 497px;
-  background: url('../../content/images/jhipster_family_member_3.svg') no-repeat center top;
-  background-size: contain;
-}
-
 /* wait autoprefixer update to allow simple generation of high pixel density media query */
 @media only screen and (-webkit-min-device-pixel-ratio: 2),
   only screen and (-moz-min-device-pixel-ratio: 2),
@@ -19,5 +11,102 @@ Main page styles
   .hipster {
     background: url('../../content/images/jhipster_family_member_3.svg') no-repeat center top;
     background-size: contain;
+  }
+
+  /* ==========================================================================
+Main page styles
+========================================================================== */
+
+  .hipster {
+    display: inline-block;
+    width: 347px;
+    height: 497px;
+    background: url('../../content/images/jhipster_family_member_3.svg') no-repeat center top;
+    background-size: contain;
+    color: aquamarine;
+  }
+
+  /* wait autoprefixer update to allow simple generation of high pixel density media query */
+  @media only screen and (-webkit-min-device-pixel-ratio: 2),
+    only screen and (-moz-min-device-pixel-ratio: 2),
+    only screen and (-o-min-device-pixel-ratio: 2/1),
+    only screen and (min-resolution: 192dpi),
+    only screen and (min-resolution: 2dppx) {
+    .hipster {
+      background: url('../../content/images/jhipster_family_member_3.svg') no-repeat center top;
+      background-size: contain;
+    }
+  }
+
+  .fc-row {
+    max-height: 2px !important ;
+    line-height: 2px !important;
+    color: aquamarine !important;
+  }
+  .fc-agenda-slots td div {
+    max-height: 2px !important ;
+    // height: 10px !important;
+    line-height: 2px !important;
+    color: aquamarine !important;
+  }
+  #trip-btn {
+    position: fixed;
+    right: 5%;
+    bottom: 10%;
+    z-index: 10000;
+    border-radius: 50px;
+  }
+  #toast {
+    top: 1%;
+    right: 0;
+    z-index: 10000;
+  }
+
+  .fc-day-grid-event {
+    display: none !important; /* Hide days outside the range */
+  }
+
+  .fc-day-top.fc-other-month {
+    visibility: hidden !important; /* Hide day numbers outside the range */
+  }
+
+  /* Change the background color */
+  .fc {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+  }
+
+  /* Style the header toolbar */
+  .fc-toolbar {
+    background-color: #f5f5f5;
+    padding: 5px;
+    border-radius: 5px;
+  }
+
+  /* Change the color of the day headers */
+  .fc-col-header-cell {
+    background-color: #4a90e2;
+    color: white;
+    font-weight: bold;
+    padding: 8px;
+    text-align: center;
+  }
+
+  /* Customize event appearance */
+  .fc-event {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+    color: white !important;
+    border-radius: 5px;
+    padding: 2px 5px;
+    font-size: 12px;
+  }
+
+  /* Hover effect for events */
+  .fc-event:hover {
+    background-color: #0056b3 !important;
+    border-color: #0056b3 !important;
   }
 }
