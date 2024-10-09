@@ -33,8 +33,9 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:postgresql://localhost:5432/organizers-app
-    username: postgres
-    password: password
+    username: oluwatobiloba
+    password:
+    driverClassName: org.postgresql.Driver
     hikari:
       poolName: Hikari
       auto-commit: false

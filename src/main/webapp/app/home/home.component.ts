@@ -11,6 +11,7 @@ import { CalendarOptions } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
+import { EventService } from 'app/entities/event/service/event.service';
 
 @Component({
   standalone: true,
@@ -27,17 +28,15 @@ export default class HomeComponent implements OnInit, OnDestroy {
     initialView: 'dayGridMonth',
     plugins: [dayGridPlugin, interactionPlugin],
     dateClick: () => this.handleDateClick(),
-    weekends: false,
-    events: [
-      { title: 'event 1', date: '2024-09-28' },
-      { title: 'event 2', date: '2024-09-28' },
-    ],
+    weekends: true,
+    events: [],
   };
 
   private readonly destroy$ = new Subject<void>();
 
   private accountService = inject(AccountService);
   private router = inject(Router);
+  private eventService = inject(EventService);
 
   public toggleWeekends(): void {
     this.calendarOptions.weekends = !this.calendarOptions.weekends;
@@ -51,6 +50,8 @@ export default class HomeComponent implements OnInit, OnDestroy {
       .getAuthenticationState()
       .pipe(takeUntil(this.destroy$))
       .subscribe(account => this.account.set(account));
+
+    this.loadEvents();
   }
 
   login(): void {
@@ -60,5 +61,20 @@ export default class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private loadEvents(): void {
+    this.eventService
+      .query()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(events => {
+        this.calendarOptions.events = events.body?.map(value => {
+          return {
+            id: value.id.toString(),
+            date: value.event_date?.format('YYYY-MM-DD').toString(),
+            title: value.event_description ?? '',
+          };
+        });
+      });
   }
 }
