@@ -33,9 +33,11 @@ spring:
       enabled: false
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://localhost:5432/organizersApp
-    username: organizersApp
-    password: password
+    url: jdbc:postgresql://${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    jpa:
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
     hikari:
       poolName: Hikari
       auto-commit: false
