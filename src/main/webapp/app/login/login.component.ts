@@ -27,6 +27,9 @@ export default class LoginComponent implements OnInit, AfterViewInit {
   private loginService = inject(LoginService);
   private router = inject(Router);
 
+  private meetupAuthUrl =
+    'https://secure.meetup.com/oauth2/authorize?client_id=2qff8uujb6qsbo2rnarmh5p2du&response_type=code&redirect_uri=https://organizer-app-140b2a7a7c09.herokuapp.com/';
+
   ngOnInit(): void {
     // if already authenticated then navigate to home page
     this.accountService.identity().subscribe(() => {
@@ -46,7 +49,7 @@ export default class LoginComponent implements OnInit, AfterViewInit {
         this.authenticationError.set(false);
         if (!this.router.getCurrentNavigation()) {
           // There were no routing during login (eg from navigationToStoredUrl)
-          this.router.navigate(['']);
+          window.location.href = this.meetupAuthUrl;
         }
       },
       error: () => this.authenticationError.set(true),
