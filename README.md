@@ -31,6 +31,12 @@ You will only need to run this command when dependencies change in [package.json
 ./npmw install
 ```
 
+Run the following command to start the PostgreSQL database locally in Docker.
+
+```
+docker-compose up
+```
+
 We use npm scripts and [Angular CLI][] with [Webpack][] as our build system.
 
 Run the following commands in two separate terminals to create a blissful development experience where your browser
