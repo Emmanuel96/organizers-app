@@ -70,6 +70,8 @@ export default class LoginComponent implements OnInit, AfterViewInit {
           const urlParams = new URLSearchParams(window.location.search);
           const code: any = urlParams.get('code');
 
+          sessionStorage.setItem('code', code);
+
           // eslint-disable-next-line no-console
           console.info('code: ', code);
 
@@ -102,6 +104,8 @@ export default class LoginComponent implements OnInit, AfterViewInit {
       const data: TokenResponse = await response.json();
       // eslint-disable-next-line no-console
       console.info('Access Token:', data.access_token);
+      sessionStorage.setItem('access_token', data.access_token);
+      sessionStorage.setItem('refresh_token', data.refresh_token);
       // eslint-disable-next-line no-console
       console.info('Refresh Token:', data.refresh_token);
     } catch (error) {

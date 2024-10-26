@@ -51,6 +51,9 @@ export default class HomeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(account => this.account.set(account));
 
+    // eslint-disable-next-line no-console
+    console.info('session storage:' + sessionStorage.getItem('access_token'));
+
     this.loadEvents();
   }
 
