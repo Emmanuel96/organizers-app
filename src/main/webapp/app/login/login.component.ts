@@ -50,6 +50,14 @@ export default class LoginComponent implements OnInit, AfterViewInit {
         if (!this.router.getCurrentNavigation()) {
           // There were no routing during login (eg from navigationToStoredUrl)
           window.location.href = this.meetupAuthUrl;
+
+          //get code and store in local storage
+          // store on local storage
+          // After redirection, to get the code parameter from the URL:
+          const urlParams = new URLSearchParams(window.location.search);
+          const code = urlParams.get('code');
+
+          console.info('code: ', code);
         }
       },
       error: () => this.authenticationError.set(true),
