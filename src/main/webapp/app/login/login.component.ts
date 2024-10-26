@@ -6,6 +6,12 @@ import SharedModule from 'app/shared/shared.module';
 import { LoginService } from 'app/login/login.service';
 import { AccountService } from 'app/core/auth/account.service';
 
+interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  token_type: string;
+}
 @Component({
   standalone: true,
   selector: 'jhi-login',
@@ -14,6 +20,13 @@ import { AccountService } from 'app/core/auth/account.service';
 })
 export default class LoginComponent implements OnInit, AfterViewInit {
   username = viewChild.required<ElementRef>('username');
+  clientId: any = '2qff8uujb6qsbo2rnarmh5p2du';
+  clientSecret = 'krbnaft7ri8vaqbtpteo4s9ne0';
+  redirectUri = 'https://organizer-app-140b2a7a7c09.herokuapp.com/';
+
+  // code = '3ae658e5a776fcf2f2db975e2dbb72e1';
+
+  tokenUrl = 'https://secure.meetup.com/oauth2/access';
 
   authenticationError = signal(false);
 
@@ -55,12 +68,45 @@ export default class LoginComponent implements OnInit, AfterViewInit {
           // store on local storage
           // After redirection, to get the code parameter from the URL:
           const urlParams = new URLSearchParams(window.location.search);
-          const code = urlParams.get('code');
+          const code: any = urlParams.get('code');
 
+          // eslint-disable-next-line no-console
           console.info('code: ', code);
+
+          //STEP 2:
+          this.getAccessToken(code);
         }
       },
       error: () => this.authenticationError.set(true),
     });
+  }
+
+  async getAccessToken(code: string): Promise<void> {
+    try {
+      const response = await fetch(this.tokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'authorization_code',
+          redirect_uri: this.redirectUri,
+          code,
+        }).toString(),
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+      const data: TokenResponse = await response.json();
+      // eslint-disable-next-line no-console
+      console.info('Access Token:', data.access_token);
+      // eslint-disable-next-line no-console
+      console.info('Refresh Token:', data.refresh_token);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch access token:', error);
+    }
   }
 }
