@@ -131,7 +131,7 @@ export default tseslint.config(
   {
     // Html templates requires some work
     ignores: ['**/*.html'],
-    extends: [prettier],
+    // extends: [prettier],
   },
   // jhipster-needle-eslint-add-config - JHipster will add additional config here
   prettier,

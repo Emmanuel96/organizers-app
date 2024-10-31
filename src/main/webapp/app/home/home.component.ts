@@ -69,21 +69,35 @@ export default class HomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
+    const code: string | null = urlParams.get('code');
 
     // eslint-disable-next-line no-console
     console.log('Code:', code);
 
     if (code) {
-      // Store the code in session storage
-      sessionStorage.setItem('code', code);
-
-      // Clear the code from the URL (optional)
-      window.history.replaceState({}, document.title, window.location.pathname);
-
-      // Proceed to get the access token
-      this.getAccessToken(code);
+      // pass the cod
+      this.eventService.getEventByGroupName(code).subscribe(events => {
+        // eslint-disable-next-line no-console
+        console.log('events: ', events);
+      });
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('No code');
     }
+
+    // eslint-disable-next-line no-console
+    console.log('Code:', code);
+
+    // if (code) {
+    //   // Store the code in session storage
+    //   sessionStorage.setItem('code', code);
+
+    //   // Clear the code from the URL (optional)
+    //   window.history.replaceState({}, document.title, window.location.pathname);
+
+    //   // Proceed to get the access token
+    //   this.getAccessToken(code);
+    // }
 
     this.accountService
       .getAuthenticationState()

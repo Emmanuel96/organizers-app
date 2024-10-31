@@ -461,10 +461,10 @@
                                 <message>You are running an older version of Maven. JHipster requires at least Maven ${maven.version}</message>
                                 <version>[${maven.version},)</version>
                             </requireMavenVersion>
-                            <requireJavaVersion>
+                            <!-- <requireJavaVersion>
                                 <message>You are running an incompatible version of Java. JHipster supports JDK 17 to 22.</message>
                                 <version>[17,18),[21,22),[22,23)</version>
-                            </requireJavaVersion>
+                            </requireJavaVersion> -->
                         </rules>
                     </configuration>
                 </plugin>

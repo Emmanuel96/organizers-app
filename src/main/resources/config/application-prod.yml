@@ -26,6 +26,25 @@ management:
         enabled: false
 
 spring:
+  security:
+  oauth2:
+    client:
+      registration:
+        meetup:
+          client-id: '2qff8uujb6qsbo2rnarmh5p2du'
+          client-secret: 'krbnaft7ri8vaqbtpteo4s9ne0'
+          scope: basic, profile, email
+          redirect-uri: 'https://organizer-app-140b2a7a7c09.herokuapp.com/'
+          authorization-grant-type: authorization_code
+          client-name: Meetup
+      provider:
+        meetup:
+          authorization-uri: https://secure.meetup.com/oauth2/authorize
+          token-uri: https://secure.meetup.com/oauth2/access
+          user-info-uri: https://api.meetup.com/2/member/self
+          user-name-attribute: id
+          jwk-set-uri: https://secure.meetup.com/oauth2/jwks
+
   devtools:
     restart:
       enabled: false

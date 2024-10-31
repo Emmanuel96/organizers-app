@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 import dayjs from 'dayjs/esm';
@@ -60,6 +60,19 @@ export class EventService {
     const options = createRequestOption(req);
     return this.http
       .get<RestEvent[]>(this.resourceUrl, { params: options, observe: 'response' })
+      .pipe(map(res => this.convertResponseArrayFromServer(res)));
+  }
+
+  getEventByGroupName(code?: any): Observable<EntityArrayResponseType> {
+    // const copy = this.convertDateFromClient(code);
+    const groupUrlName = 'software-developers-of-calgary';
+    const params = { code, groupUrlName };
+
+    return this.http
+      .post<RestEvent[]>(`${this.resourceUrl}/oauth/meetup`, null, {
+        params,
+        observe: 'response',
+      })
       .pipe(map(res => this.convertResponseArrayFromServer(res)));
   }
 

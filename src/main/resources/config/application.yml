@@ -154,6 +154,7 @@ spring:
     problemdetails:
       enabled: true
   security:
+    contentSecurityPolicy: "default-src 'self'; connect-src 'self' https://secure.meetup.com; img-src 'self' data:; style-src 'self' 'unsafe-inline';"
     oauth2:
       resourceserver:
         jwt:
