@@ -3,8 +3,12 @@ package com.calgary.organizers.organizersapp.web.rest;
 import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.repository.EventRepository;
 import com.calgary.organizers.organizersapp.web.rest.errors.BadRequestAlertException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -136,8 +140,36 @@ public class EventResource {
                     String.class
                 );
 
+                if (graphqlResponse.getStatusCode() == HttpStatus.OK) {
+                    // Parse the response to extract event data
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode rootNode = objectMapper.readTree(graphqlResponse.getBody());
+                    JsonNode eventsNode = rootNode.at("/data/groupByUrlname/upcomingEvents/edges");
+
+                    List<Event> eventsToSave = new ArrayList<>();
+                    for (JsonNode edge : eventsNode) {
+                        JsonNode eventNode = edge.get("node");
+                        Event event = new Event();
+                        // event.setevent_(eventNode.get("title").asText());
+                        event.setEvent_description(eventNode.get("title").asText());
+                        event.setEvent_date(ZonedDateTime.parse(eventNode.get("dateTime").asText()));
+                        event.setEvent_group_name(groupUrlName);
+                        event.setEvent_location(eventNode.at("/venue/address").asText());
+
+                        eventsToSave.add(event);
+                    }
+
+                    // Save all events to the database
+                    eventRepository.saveAll(eventsToSave);
+
+                    return ResponseEntity.ok("Events fetched and saved successfully.");
+                } else {
+                    return ResponseEntity.status(graphqlResponse.getStatusCode()).body(
+                        "Failed to retrieve events. Response code: " + graphqlResponse.getStatusCode()
+                    );
+                }
                 // Return the events response from Meetup API
-                return ResponseEntity.ok(graphqlResponse.getBody());
+                // return ResponseEntity.ok(graphqlResponse.getBody());
             } else {
                 return ResponseEntity.status(tokenResponse.getStatusCode()).body(
                     "Failed to retrieve access token. Response code: " + tokenResponse.getStatusCode()

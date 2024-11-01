@@ -63,9 +63,13 @@ export class EventService {
       .pipe(map(res => this.convertResponseArrayFromServer(res)));
   }
 
-  getEventByGroupName(code?: any): Observable<EntityArrayResponseType> {
+  getEventByGroupName(code?: any, groupUrlName?: any): Observable<EntityArrayResponseType> {
     // const copy = this.convertDateFromClient(code);
-    const groupUrlName = 'software-developers-of-calgary';
+    // groupUrlName = 'software-developers-of-calgary';
+
+    // eslint-disable-next-line no-console
+    console.log('groupUrlName: ', groupUrlName);
+
     const params = { code, groupUrlName };
 
     return this.http

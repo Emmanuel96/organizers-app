@@ -36,8 +36,8 @@ export default class LoginComponent implements OnInit, AfterViewInit {
   private router = inject(Router);
 
   private meetupAuthUrl =
-    'https://secure.meetup.com/oauth2/authorize?client_id=2qff8uujb6qsbo2rnarmh5p2du&response_type=code&redirect_uri=https://organizer-app-140b2a7a7c09.herokuapp.com/';
-  // 'https://secure.meetup.com/oauth2/authorize?client_id=2qff8uujb6qsbo2rnarmh5p2du&response_type=code&redirect_uri=https://b10315c1b7cd.ngrok.app/';
+    // 'https://secure.meetup.com/oauth2/authorize?client_id=2qff8uujb6qsbo2rnarmh5p2du&response_type=code&redirect_uri=https://organizer-app-140b2a7a7c09.herokuapp.com/';
+    'https://secure.meetup.com/oauth2/authorize?client_id=2qff8uujb6qsbo2rnarmh5p2du&response_type=code&redirect_uri=https://b10315c1b7cd.ngrok.app/';
 
   ngOnInit(): void {
     // if already authenticated then navigate to home page
@@ -60,7 +60,7 @@ export default class LoginComponent implements OnInit, AfterViewInit {
           // There were no routing during login (eg from navigationToStoredUrl)
           window.location.href = this.meetupAuthUrl;
 
-          //get code and store in local storage
+          // get code and store in local storage
           // store on local storage
           // After redirection, to get the code parameter from the URL:
           const urlParams = new URLSearchParams(window.location.search);

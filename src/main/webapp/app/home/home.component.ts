@@ -1,3 +1,5 @@
+declare const bootstrap: any;
+
 import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -12,6 +14,9 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import { EventService } from 'app/entities/event/service/event.service';
+import { FormsModule } from '@angular/forms';
+// import * as bootstrap from 'bootstrap';
+// import { Modal } from 'bootstrap';
 
 interface TokenResponse {
   access_token: string;
@@ -25,11 +30,14 @@ interface TokenResponse {
   selector: 'jhi-home',
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
-  imports: [SharedModule, RouterModule, FullCalendarModule],
+  imports: [SharedModule, RouterModule, FullCalendarModule, FormsModule],
 })
 export default class HomeComponent implements OnInit, OnDestroy {
   account = signal<Account | null>(null);
   @ViewChild('calendar') calendarComponent: FullCalendarComponent | undefined;
+
+  groupName = '';
+  code: string | null = '';
 
   clientId: any = '2qff8uujb6qsbo2rnarmh5p2du';
   clientSecret = 'krbnaft7ri8vaqbtpteo4s9ne0';
@@ -48,7 +56,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
     customButtons: {
       customButton: {
         text: 'Add Group',
-        click: () => alert('My custom button was clicked!'),
+        click: () => this.openModal(),
       },
     },
     events: [],
@@ -69,24 +77,24 @@ export default class HomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const urlParams = new URLSearchParams(window.location.search);
-    const code: string | null = urlParams.get('code');
+    this.code = urlParams.get('code');
 
     // eslint-disable-next-line no-console
-    console.log('Code:', code);
+    // console.log('Code:', this.code);
 
-    if (code) {
-      // pass the cod
-      this.eventService.getEventByGroupName(code).subscribe(events => {
-        // eslint-disable-next-line no-console
-        console.log('events: ', events);
-      });
-    } else {
-      // eslint-disable-next-line no-console
-      console.log('No code');
-    }
+    // if (this.code) {
+    //   // pass the cod
+    //   this.eventService.getEventByGroupName(this.code).subscribe(events => {
+    //     // eslint-disable-next-line no-console
+    //     console.log('events: ', events);
+    //   });
+    // } else {
+    //   // eslint-disable-next-line no-console
+    //   console.log('No code');
+    // }
 
     // eslint-disable-next-line no-console
-    console.log('Code:', code);
+    // console.log('Code:', this.code);
 
     // if (code) {
     //   // Store the code in session storage
@@ -135,7 +143,6 @@ export default class HomeComponent implements OnInit, OnDestroy {
       // eslint-disable-next-line no-console
       console.info('Refresh Token:', data.refresh_token);
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Failed to fetch access token:', error);
     }
   }
@@ -147,6 +154,40 @@ export default class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  openModal(): void {
+    // Logic to open your modal
+    const modalElement = document.getElementById('groupNameModal');
+    if (modalElement) {
+      // Use Bootstrap's JavaScript to show the modal
+      const modal = new bootstrap.Modal(modalElement); // Use the global bootstrap object
+      modal.show(); // Show the modal
+    }
+  }
+
+  submitGroupName(): void {
+    // eslint-disable-next-line no-console
+    console.log('Code:', this.code);
+    // eslint-disable-next-line no-console
+    console.log('Group Name:', this.groupName);
+    const modalElement = document.getElementById('groupNameModal') as HTMLElement;
+
+    // get group name
+    if (this.code) {
+      // pass the code
+      this.eventService.getEventByGroupName(this.code, this.groupName).subscribe(events => {
+        // eslint-disable-next-line no-console
+        console.log('events: ', events);
+      });
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('No code');
+    }
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    modal.hide();
+
+    // now pass that group name to the service
   }
 
   private loadEvents(): void {

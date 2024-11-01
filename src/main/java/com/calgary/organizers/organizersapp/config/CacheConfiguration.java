@@ -42,6 +42,7 @@ public class CacheConfiguration {
             createCache(cm, com.calgary.organizers.organizersapp.repository.UserRepository.USERS_BY_EMAIL_CACHE);
             createCache(cm, com.calgary.organizers.organizersapp.domain.Authority.class.getName());
             createCache(cm, com.calgary.organizers.organizersapp.domain.Event.class.getName());
+            createCache(cm, com.calgary.organizers.organizersapp.domain.Group.class.getName());
             // jhipster-needle-ehcache-add-entry
         };
     }

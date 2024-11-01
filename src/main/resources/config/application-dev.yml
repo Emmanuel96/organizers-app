@@ -29,7 +29,7 @@ spring:
             client-id: '2qff8uujb6qsbo2rnarmh5p2du'
             client-secret: 'krbnaft7ri8vaqbtpteo4s9ne0'
             scope: basic, profile, email
-            redirect-uri: 'https://organizer-app-140b2a7a7c09.herokuapp.com/'
+            redirect-uri: 'https://b10315c1b7cd.ngrok.app/'
             authorization-grant-type: authorization_code
             client-name: Meetup
         provider:

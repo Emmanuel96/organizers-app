@@ -106,6 +106,7 @@
     "@angular/cli": "18.2.5",
     "@angular/compiler-cli": "18.2.5",
     "@angular/service-worker": "18.2.5",
+    "@types/bootstrap": "^5.2.10",
     "@types/jest": "29.5.13",
     "@types/node": "20.11.25",
     "angular-eslint": "18.3.1",

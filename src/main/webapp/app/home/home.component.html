@@ -28,3 +28,24 @@
     </div>
   </div>
 </div>
+
+<!-- Modal Structure -->
+<div class="modal fade" id="groupNameModal" tabindex="-1" aria-labelledby="groupNameModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="groupNameModalLabel">Enter Group Name</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="submitGroupName()">
+          <div class="mb-3">
+            <label for="groupNameInput" class="form-label">Group Name</label>
+            <input type="text" class="form-control" id="groupNameInput" [(ngModel)]="groupName" name="groupName" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

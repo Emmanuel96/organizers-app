@@ -34,12 +34,6 @@ const routes: Routes = [
     title: 'login.title',
   },
   {
-    path: 'events/oauth/meetup',
-    // loadComponent: () => import('./login/login.component'),
-    loadComponent: () => import('./oauth-callback/oauth-callback.component'),
-    title: 'oauth.title',
-  },
-  {
     path: '',
     loadChildren: () => import(`./entities/entity.routes`),
   },

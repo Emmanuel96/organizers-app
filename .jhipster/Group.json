@@ -1,0 +1,25 @@
+{
+  "annotations": {
+    "changelogDate": "20241031220214"
+  },
+  "dto": "no",
+  "entityTableName": "jhi_group",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "meetup_group_name",
+      "fieldType": "String",
+      "fieldValidateRules": []
+    }
+  ],
+  "jpaMetamodelFiltering": false,
+  "name": "Group",
+  "pagination": "pagination",
+  "readOnly": false,
+  "relationships": [],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}
