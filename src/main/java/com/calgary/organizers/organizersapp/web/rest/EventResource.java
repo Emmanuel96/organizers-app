@@ -2,31 +2,31 @@ package com.calgary.organizers.organizersapp.web.rest;
 
 import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.repository.EventRepository;
+import com.calgary.organizers.organizersapp.service.EventService;
+import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
+import com.calgary.organizers.organizersapp.service.oauth.ServerFlowProvider;
 import com.calgary.organizers.organizersapp.web.rest.errors.BadRequestAlertException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
@@ -38,31 +38,27 @@ import tech.jhipster.web.util.ResponseUtil;
 @Transactional
 public class EventResource {
 
-    @Value("${spring.security.oauth2.client.registration.meetup.client-id}")
-    private String clientId;
-
-    @Value("${spring.security.oauth2.client.registration.meetup.client-secret}")
-    private String clientSecret;
-
-    @Value("${spring.security.oauth2.client.registration.meetup.redirect-uri}")
-    private String redirectUri;
-
-    @Value("${spring.security.oauth2.client.provider.meetup.token-uri}")
-    private String tokenUri;
-
     private static final Logger LOG = LoggerFactory.getLogger(EventResource.class);
-
     private static final String ENTITY_NAME = "event";
-
-    private static final String MEETUP_GRAPHQL_API_URL = "https://api.meetup.com/gql";
 
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
     private final EventRepository eventRepository;
+    private final ServerFlowProvider serverFlowProvider;
+    private final MeetupService meetupService;
+    private final EventService eventService;
 
-    public EventResource(EventRepository eventRepository) {
+    public EventResource(
+        EventRepository eventRepository,
+        ServerFlowProvider serverFlowProvider,
+        MeetupService meetupService,
+        EventService eventService
+    ) {
         this.eventRepository = eventRepository;
+        this.serverFlowProvider = serverFlowProvider;
+        this.meetupService = meetupService;
+        this.eventService = eventService;
     }
 
     /**
@@ -85,105 +81,23 @@ public class EventResource {
     }
 
     @PostMapping("/oauth/meetup")
-    public ResponseEntity<?> exchangeCodeForTokenAndFetchEvents(@RequestParam String code, @RequestParam String groupUrlName) {
-        // Ensure code is provided
-        if (code == null || code.isEmpty()) {
-            return ResponseEntity.badRequest().body("Authorization code is missing");
-        }
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        // Set headers for the token request
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        // Populate the body parameters for the token request
-        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
-        requestParams.add("client_id", clientId);
-        requestParams.add("client_secret", clientSecret);
-        requestParams.add("grant_type", "authorization_code");
-        requestParams.add("redirect_uri", redirectUri);
-        requestParams.add("code", code);
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(requestParams, headers);
-
-        try {
-            // Step 1: Exchange code for access token
-            ResponseEntity<Map> tokenResponse = restTemplate.postForEntity(tokenUri, request, Map.class);
-
-            if (tokenResponse.getStatusCode() == HttpStatus.OK && tokenResponse.getBody() != null) {
-                // Get the access token from the response
-                String accessToken = (String) tokenResponse.getBody().get("access_token");
-
-                if (accessToken == null || accessToken.isEmpty()) {
-                    return ResponseEntity.status(500).body("Failed to retrieve access token.");
-                }
-
-                // Step 2: Fetch events using the GraphQL API with the access token
-                HttpHeaders graphqlHeaders = new HttpHeaders();
-                graphqlHeaders.set("Authorization", "Bearer " + accessToken);
-                graphqlHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-                // Create the GraphQL query
-                String graphqlQuery =
-                    "{ \"query\": \"query ($groupUrlname: String!, $input: ConnectionInput!) { groupByUrlname(urlname: $groupUrlname) { upcomingEvents(input: $input) { edges { node { title dateTime venue { name address } } } } } }\", \"variables\": { \"groupUrlname\": \"" +
-                    groupUrlName +
-                    "\", \"input\": { \"first\": 10 } } }";
-
-                HttpEntity<String> graphqlRequest = new HttpEntity<>(graphqlQuery, graphqlHeaders);
-
-                // Send request to Meetup GraphQL API
-                ResponseEntity<String> graphqlResponse = restTemplate.exchange(
-                    MEETUP_GRAPHQL_API_URL,
-                    HttpMethod.POST,
-                    graphqlRequest,
-                    String.class
-                );
-
-                if (graphqlResponse.getStatusCode() == HttpStatus.OK) {
-                    // Parse the response to extract event data
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    JsonNode rootNode = objectMapper.readTree(graphqlResponse.getBody());
-                    JsonNode eventsNode = rootNode.at("/data/groupByUrlname/upcomingEvents/edges");
-
-                    List<Event> eventsToSave = new ArrayList<>();
-                    for (JsonNode edge : eventsNode) {
-                        JsonNode eventNode = edge.get("node");
-                        Event event = new Event();
-                        // event.setevent_(eventNode.get("title").asText());
-                        event.setEvent_description(eventNode.get("title").asText());
-                        event.setEvent_date(ZonedDateTime.parse(eventNode.get("dateTime").asText()));
-                        event.setEvent_group_name(groupUrlName);
-                        event.setEvent_location(eventNode.at("/venue/address").asText());
-
-                        eventsToSave.add(event);
-                    }
-
-                    // Save all events to the database
-                    eventRepository.saveAll(eventsToSave);
-
-                    return ResponseEntity.ok("Events fetched and saved successfully.");
-                } else {
-                    return ResponseEntity.status(graphqlResponse.getStatusCode()).body(
-                        "Failed to retrieve events. Response code: " + graphqlResponse.getStatusCode()
-                    );
-                }
-                // Return the events response from Meetup API
-                // return ResponseEntity.ok(graphqlResponse.getBody());
-            } else {
-                return ResponseEntity.status(tokenResponse.getStatusCode()).body(
-                    "Failed to retrieve access token. Response code: " + tokenResponse.getStatusCode()
-                );
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Failed to retrieve events: " + e.getMessage());
-        }
+    public ResponseEntity<?> exchangeCodeForTokenAndFetchEvents(
+        @RequestParam @NotBlank(message = "Authorization code is missing") String code,
+        @RequestParam @NotBlank String groupUrlName
+    ) {
+        // Step 1: Exchange code for access token
+        String accessToken = serverFlowProvider.getAccessToken(code);
+        // Step 2: Fetch events using the GraphQL API with the access token
+        List<Event> meetupEvents = meetupService.fetchEvents(accessToken, groupUrlName);
+        // Save all events to the database
+        eventService.saveEvents(meetupEvents);
+        return ResponseEntity.ok("Events fetched and saved successfully.");
     }
 
     /**
      * {@code PUT  /events/:id} : Updates an existing event.
      *
-     * @param id the id of the event to save.
+     * @param id    the id of the event to save.
      * @param event the event to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated event,
      * or with status {@code 400 (Bad Request)} if the event is not valid,
@@ -214,7 +128,7 @@ public class EventResource {
     /**
      * {@code PATCH  /events/:id} : Partial updates given fields of an existing event, field will ignore if it is null
      *
-     * @param id the id of the event to save.
+     * @param id    the id of the event to save.
      * @param event the event to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated event,
      * or with status {@code 400 (Bad Request)} if the event is not valid,

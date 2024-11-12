@@ -125,3 +125,10 @@ jhipster:
 # ===================================================================
 
 # application:
+
+meetup:
+  client-id: '4hcobk2rocuoh763dvgsplk6kf'
+  subject: '327840413'
+  audience: 'api.meetup.com'
+  key-id: 'qjVhwB9eyoBu6AYyfT1fgVaYdLh7nghl8p1qS9asaTQ'
+  private-key-content: ${PRIVATE_KEY_MEETUP}

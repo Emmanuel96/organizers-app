@@ -96,7 +96,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        <dependency>
+      <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
@@ -282,6 +282,24 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <scope>test</scope>
+        </dependency>
+        <!-- jwt flow token generation-->
+        <!-- nimbusds used for signing jwt with private key-->
+        <dependency>
+          <groupId>com.nimbusds</groupId>
+          <artifactId>nimbus-jose-jwt</artifactId>
+          <version>9.23</version>
+        </dependency>
+        <!-- bouncycastle used for private key import-->
+        <dependency>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk18on</artifactId>
+          <version>1.76</version>
+        </dependency>
+        <dependency>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcpkix-jdk18on</artifactId>
+          <version>1.76</version>
         </dependency>
     </dependencies>
 

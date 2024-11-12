@@ -1,6 +1,12 @@
 package com.calgary.organizers.organizersapp.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
@@ -31,6 +37,15 @@ public class Event implements Serializable {
 
     @Column(name = "event_group_name")
     private String event_group_name;
+
+    @Column(name = "dynamic")
+    private Boolean dynamic;
+
+    @Column(name = "event_id")
+    private String eventId;
+
+    @Column(name = "group_name")
+    private String groupName;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -97,6 +112,30 @@ public class Event implements Serializable {
 
     public void setEvent_group_name(String event_group_name) {
         this.event_group_name = event_group_name;
+    }
+
+    public Boolean getDynamic() {
+        return dynamic;
+    }
+
+    public void setDynamic(Boolean dynamic) {
+        this.dynamic = dynamic;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
