@@ -1,7 +1,8 @@
 package com.calgary.organizers.organizersapp.repository;
 
 import com.calgary.organizers.organizersapp.domain.Event;
-import org.springframework.data.jpa.repository.*;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -9,4 +10,6 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface EventRepository extends JpaRepository<Event, Long> {}
+public interface EventRepository extends JpaRepository<Event, Long> {
+    List<Event> findAllByDynamicIsTrueAndGroupName(String groupName);
+}
