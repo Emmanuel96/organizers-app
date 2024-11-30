@@ -9,7 +9,7 @@ import SharedModule from 'app/shared/shared.module';
 import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
 
-import { CalendarOptions } from '@fullcalendar/core';
+import { CalendarOptions, EventClickArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
@@ -33,6 +33,12 @@ interface TokenResponse {
   imports: [SharedModule, RouterModule, FullCalendarModule, FormsModule],
 })
 export default class HomeComponent implements OnInit, OnDestroy {
+  eventTitle = '';
+  eventDescription = '';
+  eventDate = '';
+  eventLocation = '';
+  eventGroup: any;
+
   account = signal<Account | null>(null);
   @ViewChild('calendar') calendarComponent: FullCalendarComponent | undefined;
 
@@ -60,6 +66,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
       },
     },
     events: [],
+    eventClick: this.handleEventClick.bind(this),
   };
 
   private readonly destroy$ = new Subject<void>();
@@ -67,7 +74,22 @@ export default class HomeComponent implements OnInit, OnDestroy {
   private accountService = inject(AccountService);
   private router = inject(Router);
   private eventService = inject(EventService);
+  private events: any[] = [];
 
+  handleEventClick(clickInfo: EventClickArg): void {
+    const id = clickInfo.event.id;
+
+    const event: any = this.events.find((e: any) => e.id.toString() === id);
+
+    if (event) {
+      this.eventDescription = event.event_description;
+      this.eventDate = event.event_date;
+      this.eventLocation = event.event_location;
+      this.eventGroup = event.event_group_name;
+    }
+
+    this.openModal();
+  }
   public toggleWeekends(): void {
     this.calendarOptions.weekends = !this.calendarOptions.weekends;
   }
@@ -78,34 +100,6 @@ export default class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const urlParams = new URLSearchParams(window.location.search);
     this.code = urlParams.get('code');
-
-    // eslint-disable-next-line no-console
-    // console.log('Code:', this.code);
-
-    // if (this.code) {
-    //   // pass the cod
-    //   this.eventService.getEventByGroupName(this.code).subscribe(events => {
-    //     // eslint-disable-next-line no-console
-    //     console.log('events: ', events);
-    //   });
-    // } else {
-    //   // eslint-disable-next-line no-console
-    //   console.log('No code');
-    // }
-
-    // eslint-disable-next-line no-console
-    // console.log('Code:', this.code);
-
-    // if (code) {
-    //   // Store the code in session storage
-    //   sessionStorage.setItem('code', code);
-
-    //   // Clear the code from the URL (optional)
-    //   window.history.replaceState({}, document.title, window.location.pathname);
-
-    //   // Proceed to get the access token
-    //   this.getAccessToken(code);
-    // }
 
     this.accountService
       .getAuthenticationState()
@@ -157,12 +151,10 @@ export default class HomeComponent implements OnInit, OnDestroy {
   }
 
   openModal(): void {
-    // Logic to open your modal
     const modalElement = document.getElementById('groupNameModal');
     if (modalElement) {
-      // Use Bootstrap's JavaScript to show the modal
-      const modal = new bootstrap.Modal(modalElement); // Use the global bootstrap object
-      modal.show(); // Show the modal
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
     }
   }
 
@@ -195,11 +187,13 @@ export default class HomeComponent implements OnInit, OnDestroy {
       .query()
       .pipe(takeUntil(this.destroy$))
       .subscribe(events => {
+        this.events = events.body ?? [];
         this.calendarOptions.events = events.body?.map(value => {
           return {
             id: value.id.toString(),
             date: value.event_date?.format('YYYY-MM-DD').toString(),
             title: value.event_description ?? '',
+            groupName: value.event_group_name,
           };
         });
       });
