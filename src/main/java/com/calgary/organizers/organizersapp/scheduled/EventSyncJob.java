@@ -4,7 +4,6 @@ import com.calgary.organizers.organizersapp.domain.Group;
 import com.calgary.organizers.organizersapp.service.GroupService;
 import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
 import com.calgary.organizers.organizersapp.service.oauth.JwtFlowProvider;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,7 +33,6 @@ public class EventSyncJob {
         int page = 0;
         int size = 100;
         Page<Group> groupPage;
-        new ArrayList<>();
         do {
             Pageable pageable = PageRequest.of(page, size);
             groupPage = groupService.findAll(pageable);

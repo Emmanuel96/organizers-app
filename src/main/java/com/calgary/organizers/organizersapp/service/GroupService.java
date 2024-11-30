@@ -2,6 +2,8 @@ package com.calgary.organizers.organizersapp.service;
 
 import com.calgary.organizers.organizersapp.domain.Group;
 import com.calgary.organizers.organizersapp.repository.GroupRepository;
+import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
+import com.calgary.organizers.organizersapp.service.oauth.JwtFlowProvider;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +22,13 @@ public class GroupService {
     private static final Logger LOG = LoggerFactory.getLogger(GroupService.class);
 
     private final GroupRepository groupRepository;
+    private final JwtFlowProvider jwtFlowProvider;
+    private final MeetupService meetupService;
 
-    public GroupService(GroupRepository groupRepository) {
+    public GroupService(GroupRepository groupRepository, JwtFlowProvider jwtFlowProvider, MeetupService meetupService) {
         this.groupRepository = groupRepository;
+        this.jwtFlowProvider = jwtFlowProvider;
+        this.meetupService = meetupService;
     }
 
     /**
@@ -33,7 +39,10 @@ public class GroupService {
      */
     public Group save(Group group) {
         LOG.debug("Request to save Group : {}", group);
-        return groupRepository.save(group);
+        Group savedGroup = groupRepository.save(group);
+        String accessToken = jwtFlowProvider.getAccessToken();
+        meetupService.syncEventsForGroup(accessToken, savedGroup.getMeetup_group_name());
+        return savedGroup;
     }
 
     /**
