@@ -1,9 +1,11 @@
 package com.calgary.organizers.organizersapp.service;
 
+import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.domain.Group;
 import com.calgary.organizers.organizersapp.repository.GroupRepository;
 import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
 import com.calgary.organizers.organizersapp.service.oauth.JwtFlowProvider;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +26,18 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final JwtFlowProvider jwtFlowProvider;
     private final MeetupService meetupService;
+    private final EventService eventService;
 
-    public GroupService(GroupRepository groupRepository, JwtFlowProvider jwtFlowProvider, MeetupService meetupService) {
+    public GroupService(
+        GroupRepository groupRepository,
+        JwtFlowProvider jwtFlowProvider,
+        MeetupService meetupService,
+        EventService eventService
+    ) {
         this.groupRepository = groupRepository;
         this.jwtFlowProvider = jwtFlowProvider;
         this.meetupService = meetupService;
+        this.eventService = eventService;
     }
 
     /**
@@ -111,6 +120,9 @@ public class GroupService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete Group : {}", id);
+        Group group = groupRepository.findById(id).orElseThrow();
+        List<Event> eventsOfGroup = eventService.getDynamicEventsForGroup(group.getMeetup_group_name());
+        eventService.deleteEvents(eventsOfGroup);
         groupRepository.deleteById(id);
     }
 }
