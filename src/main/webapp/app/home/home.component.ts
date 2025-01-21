@@ -83,7 +83,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
 
     if (event) {
       this.eventDescription = event.event_description;
-      this.eventDate = event.event_date;
+      this.eventDate = this.convertToMountainTime(event.event_date);
       this.eventLocation = event.event_location;
       this.eventGroup = event.event_group_name;
     }
@@ -180,6 +180,22 @@ export default class HomeComponent implements OnInit, OnDestroy {
     modal.hide();
 
     // now pass that group name to the service
+  }
+
+  convertToMountainTime(gmtDateString: string): string {
+    // Create a Date object from the GMT date string
+    const gmtDate = new Date(gmtDateString);
+
+    // Format the date to Mountain Time (America/Denver)
+    return gmtDate.toLocaleString('en-US', {
+      timeZone: 'America/Denver',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+    });
   }
 
   private loadEvents(): void {
