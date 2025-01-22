@@ -17,6 +17,17 @@ Main page styles
 Main page styles
 ========================================================================== */
 
+  .custom-heading {
+    font-weight: bold;
+  }
+
+  @media (max-width: 576px) {
+    .custom-heading {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+  }
+
   .hipster {
     display: inline-block;
     width: 347px;
@@ -108,5 +119,50 @@ Main page styles
   .fc-event:hover {
     background-color: #0056b3 !important;
     border-color: #0056b3 !important;
+  }
+
+  .date-box {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .text-white {
+    color: #fff !important;
+  }
+
+  .text-muted {
+    color: #6c757d !important;
+  }
+
+  .btn-outline-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+  }
+
+  .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: #fff;
+  }
+
+  .mobile-only {
+    display: none;
+  }
+
+  .desktop-only {
+    display: block;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-only {
+      display: block;
+    }
+
+    .desktop-only {
+      display: none;
+    }
   }
 }

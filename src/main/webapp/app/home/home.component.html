@@ -1,23 +1,18 @@
 <div class="row">
   <div class="col-md-12">
-    <h1 class="display-4">Calgary Tech Events Calendar</h1>
+    <!-- <h1 class="display-4 custom-heading">Calgary Tech Events Calendar</h1> -->
 
     <div>
       @if (account() !== null) {
-        <div class="alert alert-success">
+        <div class="alert alert-success desktop-only">
           @if (account(); as accountRef) {
-            <!-- <full-calendar [options]="calendarOptions"></full-calendar> -->
             <full-calendar [options]="calendarOptions" #calendar></full-calendar>
           }
         </div>
       } @else {
         <div class="alert alert-warning">
           <span>If you want to </span>
-          <a class="alert-link" (click)="login()">sign in</a
-          ><span
-            >, you can try the default accounts:<br />- Administrator (login=&quot;admin&quot; and password=&quot;admin&quot;) <br />- User
-            (login=&quot;user&quot; and password=&quot;user&quot;).</span
-          >
+          <a class="alert-link" (click)="login()">sign in</a>
         </div>
 
         <div class="alert alert-warning">
@@ -29,19 +24,52 @@
   </div>
 </div>
 
-<!-- Modal Structure -->
-<div class="modal fade" id="groupNameModal" tabindex="-1" aria-labelledby="groupNameModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="groupNameModalLabel">{{ eventTitle }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="container mt-3">
+  @if (account() !== null) {
+    <div class="mobile-only">
+      <!-- <h5 class="text-black">All Events</h5> -->
+      <div *ngFor="let group of groupedEvents">
+        <h6 class="text-black fw-bold">{{ group.month }}</h6>
+        <div *ngFor="let event of group.events" class="d-flex align-items-center mb-3">
+          <div class="me-3">
+            <div class="date-box text-center bg-dark text-white rounded">
+              <div>{{ event.event_date | date: 'MMM' }}</div>
+              <div>{{ event.event_date | date: 'd' }}</div>
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <h6 class="mb-1 text-black">
+              {{ event.event_group_name.charAt(0).toUpperCase() + event.event_group_name.slice(1).toLowerCase() }}
+            </h6>
+            <p class="mb-0 text-muted small">{{ event.event_location || 'Online Event' }}</p>
+          </div>
+          <!-- <div>
+            <button *ngIf="!event.added" class="btn btn-outline-secondary btn-sm">
+              <i class="fas fa-plus"></i>
+            </button>
+            <button *ngIf="event.added" class="btn btn-success btn-sm">
+              <i class="fas fa-check"></i>
+            </button>
+          </div> -->
+        </div>
       </div>
-      <div class="modal-body">
-        <p><strong>Description Summary:</strong> {{ eventDescription }}</p>
-        <p><strong>Date:</strong> {{ eventDate }} MST</p>
-        <p><strong>Location:</strong> {{ eventLocation }}</p>
-        <p><strong>Group Name:</strong> {{ eventGroup }}</p>
+    </div>
+  }
+  <!-- Add styling -->
+  <!-- Modal Structure -->
+  <div class="modal fade" id="groupNameModal" tabindex="-1" aria-labelledby="groupNameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="groupNameModalLabel">{{ eventTitle }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Description Summary:</strong> {{ eventDescription }}</p>
+          <p><strong>Date:</strong> {{ eventDate }} MST</p>
+          <p><strong>Location:</strong> {{ eventLocation }}</p>
+          <p><strong>Group Name:</strong> {{ eventGroup }}</p>
+        </div>
       </div>
     </div>
   </div>

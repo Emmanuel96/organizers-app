@@ -1,7 +1,7 @@
 <nav data-cy="navbar" class="navbar navbar-dark navbar-expand-md bg-dark">
   <div class="container-fluid">
-    <a class="navbar-brand logo" routerLink="/" (click)="collapseNavbar()">
-      <span class="logo-img"></span>
+    <a class="navbar-brand" routerLink="/" (click)="collapseNavbar()">
+      <!-- <span class="logo-img"></span> -->
       <span class="navbar-title">Calgary Tech Events</span>
     </a>
     <a
@@ -26,8 +26,16 @@
             </span>
           </a>
         </li>
+        <li class="nav-item" routerLinkActive="inactive" [routerLinkActiveOptions]="{ exact: true }">
+          <a class="nav-link" routerLink="/group" (click)="collapseNavbar()">
+            <span>
+              <fa-icon icon="users-cog"></fa-icon>
+              <span>Groups</span>
+            </span>
+          </a>
+        </li>
         <!-- jhipster-needle-add-element-to-menu - JHipster will add new menu items here -->
-        @if (account() !== null) {
+        <!-- @if (account() !== null) {
           <li
             ngbDropdown
             class="nav-item dropdown pointer"
@@ -66,10 +74,9 @@
                   <span>Group</span>
                 </a>
               </li>
-              <!-- jhipster-needle-add-entity-to-menu - JHipster will add entities to the menu here -->
             </ul>
           </li>
-        }
+        } -->
         <li
           *jhiHasAnyAuthority="'ROLE_ADMIN'"
           ngbDropdown

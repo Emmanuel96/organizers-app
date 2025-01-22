@@ -33,11 +33,13 @@ interface TokenResponse {
   imports: [SharedModule, RouterModule, FullCalendarModule, FormsModule],
 })
 export default class HomeComponent implements OnInit, OnDestroy {
+  groupedEvents: any[] = [];
   eventTitle = '';
   eventDescription = '';
   eventDate = '';
   eventLocation = '';
   eventGroup: any;
+  events: any[] = [];
 
   account = signal<Account | null>(null);
   @ViewChild('calendar') calendarComponent: FullCalendarComponent | undefined;
@@ -74,7 +76,10 @@ export default class HomeComponent implements OnInit, OnDestroy {
   private accountService = inject(AccountService);
   private router = inject(Router);
   private eventService = inject(EventService);
-  private events: any[] = [];
+
+  // constructor() {
+  //   // this.groupEventsByMonth();
+  // }
 
   handleEventClick(clickInfo: EventClickArg): void {
     const id = clickInfo.event.id;
@@ -109,6 +114,9 @@ export default class HomeComponent implements OnInit, OnDestroy {
     // eslint-disable-next-line no-console
     console.info('session storage:', sessionStorage.getItem('access_token'));
     this.loadEvents();
+
+    // eslint-disable-next-line no-console
+    console.info('this.events"', this.events);
   }
 
   async getAccessToken(code: string): Promise<void> {
@@ -198,7 +206,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadEvents(): void {
+  loadEvents(): void {
     this.eventService
       .query()
       .pipe(takeUntil(this.destroy$))
@@ -212,6 +220,44 @@ export default class HomeComponent implements OnInit, OnDestroy {
             groupName: value.event_group_name,
           };
         });
+
+        this.groupEventsByMonth();
       });
+  }
+
+  groupEventsByMonth(): { month: string; events: any[] }[] {
+    const today = new Date();
+
+    let futureEvents = this.events.filter(event => new Date(event.event_date) >= today);
+
+    futureEvents = futureEvents
+      .filter(event => new Date(event.event_date) >= today)
+      // Sort events by date in ascending order
+      .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+
+    // eslint-disable-next-line no-console
+    console.info('futureEvents: ', futureEvents);
+    const grouped = futureEvents.reduce((acc: Record<string, any[]>, event: any) => {
+      const eventDate = new Date(event.event_date);
+      const month = eventDate.toLocaleString('default', { month: 'long' });
+
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (!acc[month]) {
+        acc[month] = [];
+      }
+      acc[month].push(event);
+
+      return acc;
+    }, {});
+
+    this.groupedEvents = Object.keys(grouped).map(month => ({
+      month,
+      events: grouped[month],
+    }));
+
+    // eslint-disable-next-line no-console
+    console.info('groupedEvents: ', this.groupedEvents);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return this.groupedEvents;
   }
 }
