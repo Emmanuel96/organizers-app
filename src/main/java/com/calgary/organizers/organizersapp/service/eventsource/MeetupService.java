@@ -105,4 +105,59 @@ public class MeetupService {
         Collection<Event> eventsForRemove = CollectionUtils.removeAll(oldEvents, newEvents, new EventEquator());
         eventService.deleteEvents(eventsForRemove);
     }
+
+    public void verifyGroupParameters(String groupName, String accessToken) {
+        HttpHeaders graphqlHeaders = new HttpHeaders();
+        graphqlHeaders.set("Authorization", "Bearer " + accessToken);
+        graphqlHeaders.setContentType(MediaType.APPLICATION_JSON);
+        String graphqlQuery =
+            "query GetEventsByGroup($groupUrlname: String!) { " +
+            "  groupByUrlname(urlname: $groupUrlname) { " +
+            "    id " +
+            "    name " +
+            "    city " +
+            "  topicCategory { " +
+            "        id " +
+            "        urlkey " +
+            "        name " +
+            "        color " +
+            "        imageUrl " +
+            "        defaultTopic { " +
+            "            name " +
+            "        } " +
+            "    }" +
+            "  } " +
+            "} ";
+        String variables = "{ " + "    \"groupUrlname\": \"" + groupName + "\" " + "  }";
+        String restGraphqlQuery = "{ \"query\": \"" + graphqlQuery + "\", \"variables\": " + variables + "}";
+        HttpEntity<String> graphqlRequest = new HttpEntity<>(restGraphqlQuery, graphqlHeaders);
+
+        ResponseEntity<String> graphqlResponse = restTemplate.exchange(
+            MEETUP_GRAPHQL_API_URL,
+            HttpMethod.POST,
+            graphqlRequest,
+            String.class
+        );
+
+        if (graphqlResponse.getStatusCode() == HttpStatus.OK) {
+            JsonNode rootNode = null;
+            try {
+                rootNode = new ObjectMapper().readTree(graphqlResponse.getBody());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            var city = rootNode.at("/data/groupByUrlname/city").asText();
+            if (!city.equals("Calgary")) {
+                throw new InvalidGroupParameterException("Group from wrong city provided. Provided '%s'".formatted(city));
+            }
+            var topicCategory = rootNode.at("/data/groupByUrlname/topicCategory/name").asText();
+            if (!topicCategory.equals("Technology")) {
+                throw new InvalidGroupParameterException(
+                    "Group from wrong topic category provided. Provided '%s'".formatted(topicCategory)
+                );
+            }
+        } else {
+            throw new GraphQLException("Failed GraphQL request with code : %s".formatted(graphqlResponse.getStatusCode().toString()));
+        }
+    }
 }

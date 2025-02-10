@@ -46,10 +46,12 @@ public class GroupService {
      * @param group the entity to save.
      * @return the persisted entity.
      */
+    @Transactional
     public Group save(Group group) {
         LOG.debug("Request to save Group : {}", group);
-        Group savedGroup = groupRepository.save(group);
         String accessToken = jwtFlowProvider.getAccessToken();
+        meetupService.verifyGroupParameters(group.getMeetup_group_name(), accessToken);
+        Group savedGroup = groupRepository.save(group);
         meetupService.syncEventsForGroup(accessToken, savedGroup.getMeetup_group_name());
         return savedGroup;
     }
