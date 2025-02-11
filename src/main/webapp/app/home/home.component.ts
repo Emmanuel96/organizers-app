@@ -15,8 +15,6 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import { EventService } from 'app/entities/event/service/event.service';
 import { FormsModule } from '@angular/forms';
-// import * as bootstrap from 'bootstrap';
-// import { Modal } from 'bootstrap';
 
 interface TokenResponse {
   access_token: string;
@@ -89,12 +87,29 @@ export default class HomeComponent implements OnInit, OnDestroy {
     if (event) {
       this.eventDescription = event.event_description;
       this.eventDate = this.convertToMountainTime(event.event_date);
-      this.eventLocation = event.event_location;
+      this.eventLocation = event.event_location ? event.event_location : 'Online Event';
+      this.eventGroup = event.event_group_name;
+      this.eventTitle = event.event_group_name;
+    }
+
+    this.openModal();
+  }
+
+  handleMobileEvent(selectedEvent: any): void {
+    const event: any = selectedEvent;
+    // eslint-disable-next-line no-console
+    console.info('event:', event);
+
+    if (event) {
+      this.eventDescription = event.event_description;
+      this.eventDate = this.convertToMountainTime(event.event_date);
+      this.eventLocation = event.event_location ? event.event_location : 'Online Event';
       this.eventGroup = event.event_group_name;
     }
 
     this.openModal();
   }
+
   public toggleWeekends(): void {
     this.calendarOptions.weekends = !this.calendarOptions.weekends;
   }
@@ -232,11 +247,8 @@ export default class HomeComponent implements OnInit, OnDestroy {
 
     futureEvents = futureEvents
       .filter(event => new Date(event.event_date) >= today)
-      // Sort events by date in ascending order
       .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
 
-    // eslint-disable-next-line no-console
-    console.info('futureEvents: ', futureEvents);
     const grouped = futureEvents.reduce((acc: Record<string, any[]>, event: any) => {
       const eventDate = new Date(event.event_date);
       const month = eventDate.toLocaleString('default', { month: 'long' });
@@ -255,8 +267,6 @@ export default class HomeComponent implements OnInit, OnDestroy {
       events: grouped[month],
     }));
 
-    // eslint-disable-next-line no-console
-    console.info('groupedEvents: ', this.groupedEvents);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.groupedEvents;
   }
