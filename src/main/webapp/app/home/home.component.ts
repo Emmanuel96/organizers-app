@@ -56,7 +56,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: '', //'customButton',
+      right: '', // 'customButton',
     },
     plugins: [dayGridPlugin, interactionPlugin],
     dateClick: () => this.handleDateClick(),
