@@ -1,0 +1,29 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20250222-add-user-excluded-groups" author="yourName">
+        <createTable tableName="user_excluded_groups">
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="group_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint 
+            baseTableName="user_excluded_groups"
+            baseColumnNames="user_id"
+            constraintName="fk_user_excluded_groups_user"
+            referencedTableName="jhi_user"
+            referencedColumnNames="id"/>
+        <addForeignKeyConstraint 
+            baseTableName="user_excluded_groups"
+            baseColumnNames="group_id"
+            constraintName="fk_user_excluded_groups_group"
+            referencedTableName="jhi_group"
+            referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

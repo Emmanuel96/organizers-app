@@ -71,4 +71,15 @@ export class GroupService {
     }
     return groupCollection;
   }
+
+  getExcludedGroups(): Observable<EntityArrayResponseType> {
+    const options = createRequestOption();
+    return this.http.get<IGroup[]>(this.resourceUrl + '/groupsExcluded', { params: options, observe: 'response' });
+  }
+
+  updateFollowStatus(id: number, excluded: boolean): Observable<EntityArrayResponseType> {
+    // Construct the endpoint URL with query parameter
+    const url = `${this.resourceUrl}/${id}/toggle-exclude?excluded=${excluded}`;
+    return this.http.put<IGroup[]>(url, {}, { observe: 'response' });
+  }
 }

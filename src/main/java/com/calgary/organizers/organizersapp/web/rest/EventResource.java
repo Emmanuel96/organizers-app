@@ -1,21 +1,34 @@
 package com.calgary.organizers.organizersapp.web.rest;
 
 import com.calgary.organizers.organizersapp.domain.Event;
+import com.calgary.organizers.organizersapp.domain.Group;
+import com.calgary.organizers.organizersapp.domain.User;
 import com.calgary.organizers.organizersapp.repository.EventRepository;
+import com.calgary.organizers.organizersapp.repository.UserRepository;
 import com.calgary.organizers.organizersapp.service.EventService;
 import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
 import com.calgary.organizers.organizersapp.service.oauth.ServerFlowProvider;
 import com.calgary.organizers.organizersapp.web.rest.errors.BadRequestAlertException;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties.Authentication;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,17 +61,20 @@ public class EventResource {
     private final ServerFlowProvider serverFlowProvider;
     private final MeetupService meetupService;
     private final EventService eventService;
+    private final UserRepository userRepository;
 
     public EventResource(
         EventRepository eventRepository,
         ServerFlowProvider serverFlowProvider,
         MeetupService meetupService,
-        EventService eventService
+        EventService eventService,
+        UserRepository userRepository
     ) {
         this.eventRepository = eventRepository;
         this.serverFlowProvider = serverFlowProvider;
         this.meetupService = meetupService;
         this.eventService = eventService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -183,9 +199,34 @@ public class EventResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of events in body.
      */
     @GetMapping("")
-    public List<Event> getAllEvents() {
+    public List<Event> getAllEvents(@AuthenticationPrincipal Jwt jwt) {
         LOG.debug("REST request to get all Events");
-        return eventRepository.findAll();
+
+        org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            // throw new UnauthorizedException("User is not logged in");
+            return null;
+        }
+        String currentUserLogin = authentication.getName().toString();
+
+        User currentUser = userRepository.findOneByLogin(currentUserLogin).orElseThrow();
+
+        Set<String> excludedGroupNames = currentUser
+            .getExcludedGroups()
+            .stream()
+            .map(Group::getMeetup_group_name)
+            .collect(Collectors.toSet());
+
+        System.out.println("Excluded group names: " + excludedGroupNames);
+
+        List<Event> events = eventRepository.findAll();
+
+        List<Event> filteredEvents = events
+            .stream()
+            .filter(event -> event.getGroupName() == null || !excludedGroupNames.contains(event.getGroupName()))
+            .collect(Collectors.toList());
+
+        return filteredEvents;
     }
 
     /**
