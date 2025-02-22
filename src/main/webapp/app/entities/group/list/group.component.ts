@@ -1,7 +1,7 @@
 import { Component, NgZone, OnInit, inject } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Data, ParamMap, Router, RouterModule } from '@angular/router';
-import { Observable, Subscription, combineLatest, filter, tap } from 'rxjs';
+import { Observable, Subscription, combineLatest, filter, forkJoin, map, tap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import SharedModule from 'app/shared/shared.module';
@@ -99,6 +99,9 @@ export class GroupComponent implements OnInit {
     this.fillComponentAttributesFromResponseHeader(response.headers);
     const dataFromBody = this.fillComponentAttributesFromResponseBody(response.body);
     this.groups = dataFromBody;
+
+    // eslint-disable-next-line no-console
+    console.info('Groups:', this.groups);
   }
 
   protected fillComponentAttributesFromResponseBody(data: IGroup[] | null): IGroup[] {
@@ -109,9 +112,22 @@ export class GroupComponent implements OnInit {
     this.totalItems = Number(headers.get(TOTAL_COUNT_RESPONSE_HEADER));
   }
 
+  // protected queryBackend(): Observable<EntityArrayResponseType> {
+  //   const { page } = this;
+
+  //   this.isLoading = true;
+  //   const pageToLoad: number = page;
+  //   const queryObject: any = {
+  //     page: pageToLoad - 1,
+  //     size: this.itemsPerPage,
+  //     sort: this.sortService.buildSortParam(this.sortState()),
+  //   };
+  //   return this.groupService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+  // }
+
+  // Adjust the type according to your actual response type
   protected queryBackend(): Observable<EntityArrayResponseType> {
     const { page } = this;
-
     this.isLoading = true;
     const pageToLoad: number = page;
     const queryObject: any = {
@@ -119,7 +135,43 @@ export class GroupComponent implements OnInit {
       size: this.itemsPerPage,
       sort: this.sortService.buildSortParam(this.sortState()),
     };
-    return this.groupService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+
+    return forkJoin({
+      groupsResponse: this.groupService.query(queryObject),
+      excludedGroups: this.groupService.getExcludedGroups(),
+    }).pipe(
+      map(({ groupsResponse, excludedGroups }) => {
+        // Assuming groupsResponse.body is the array of groups
+        const excludedIds = new Set<number>();
+        if (excludedGroups.body) {
+          for (const group of excludedGroups.body) {
+            excludedIds.add(group.id);
+          }
+        }
+        groupsResponse.body?.forEach((group: any) => {
+          // Add a new property to indicate if the group is excluded
+          group.excluded = excludedIds.has(group.id);
+        });
+        return groupsResponse;
+      }),
+      tap(() => (this.isLoading = false)),
+    );
+  }
+
+  // @typescript-eslint/member-ordering
+  protected toggleFollow(group: IGroup): void {
+    // Toggle the excluded flag
+    group.excluded = !group.excluded;
+    // Call the service to persist the change
+    this.groupService.updateFollowStatus(group.id, group.excluded).subscribe({
+      next() {
+        // Optionally update UI or show a toast message
+      },
+      error() {
+        // If the update fails, you might want to revert the toggle in the UI.
+        group.excluded = !group.excluded;
+      },
+    });
   }
 
   protected handleNavigation(page: number, sortState: SortState): void {

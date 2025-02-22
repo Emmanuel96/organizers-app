@@ -1,7 +1,9 @@
 package com.calgary.organizers.organizersapp.web.rest;
 
 import com.calgary.organizers.organizersapp.domain.Group;
+import com.calgary.organizers.organizersapp.domain.User;
 import com.calgary.organizers.organizersapp.repository.GroupRepository;
+import com.calgary.organizers.organizersapp.repository.UserRepository;
 import com.calgary.organizers.organizersapp.service.GroupService;
 import com.calgary.organizers.organizersapp.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
@@ -9,6 +11,8 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +20,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -32,6 +39,7 @@ public class GroupResource {
     private static final Logger LOG = LoggerFactory.getLogger(GroupResource.class);
 
     private static final String ENTITY_NAME = "group";
+    private UserRepository userRepository;
 
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
@@ -40,9 +48,10 @@ public class GroupResource {
 
     private final GroupRepository groupRepository;
 
-    public GroupResource(GroupService groupService, GroupRepository groupRepository) {
+    public GroupResource(GroupService groupService, GroupRepository groupRepository, UserRepository userRepository) {
         this.groupService = groupService;
         this.groupRepository = groupRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -136,11 +145,34 @@ public class GroupResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of groups in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<Group>> getAllGroups(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+    public ResponseEntity<List<Group>> getAllGroups(
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+        @AuthenticationPrincipal Jwt jwt
+    ) {
         LOG.debug("REST request to get a page of Groups");
         Page<Group> page = groupService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    @GetMapping("/groupsExcluded")
+    public ResponseEntity<Set<Group>> getAllGroupsExcluded(@AuthenticationPrincipal Jwt jwt) {
+        LOG.debug("REST request to get a page of Groups");
+
+        org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            // throw new UnauthorizedException("User is not logged in");
+            return null;
+        }
+        String currentUserLogin = authentication.getName().toString();
+
+        User currentUser = userRepository.findOneByLogin(currentUserLogin).orElseThrow();
+
+        Set<Group> excludedGroups = currentUser.getExcludedGroups();
+
+        // System.out.println("Excluded groups: " + excludedGroups);
+
+        return ResponseEntity.ok().body(excludedGroups);
     }
 
     /**
@@ -169,5 +201,34 @@ public class GroupResource {
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
+    }
+
+    @PutMapping("/{id}/toggle-exclude")
+    public ResponseEntity<Void> updateFollowStatus(
+        @PathVariable Long id,
+        @RequestParam boolean excluded,
+        @AuthenticationPrincipal Jwt jwt
+    ) {
+        // log.debug("REST request to update follow status for group: {} with excluded: {}", id, excluded);
+
+        // Get current user's login from the JWT token
+        String currentUserLogin = jwt.getSubject();
+
+        // Use a join fetch (or ensure the excludedGroups are initialized) for proper lazy loading.
+        User currentUser = userRepository
+            .findOneByLogin(currentUserLogin)
+            .orElseThrow(() -> new BadRequestAlertException("User not found", "user", "notfound"));
+
+        Group group = groupRepository.findById(id).orElseThrow(() -> new BadRequestAlertException("Group not found", "group", "notfound"));
+
+        if (excluded) {
+            // If the new status is to exclude, add the group if it's not already in the set.
+            currentUser.getExcludedGroups().add(group);
+        } else {
+            // Otherwise, remove it.
+            currentUser.getExcludedGroups().remove(group);
+        }
+        userRepository.save(currentUser);
+        return ResponseEntity.ok().build();
     }
 }

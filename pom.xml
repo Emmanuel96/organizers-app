@@ -840,8 +840,8 @@
             <properties>
                 <!-- default Spring profiles -->
                 <liquibase-plugin.password>password</liquibase-plugin.password>
-                <liquibase-plugin.url>jdbc:postgresql://postgres:5432/organizers-app</liquibase-plugin.url>
-                <liquibase-plugin.username>organizers-app-user</liquibase-plugin.username>
+                <liquibase-plugin.url>jdbc:postgresql://localhost:5432/organizers-app</liquibase-plugin.url>
+                <liquibase-plugin.username>postgres</liquibase-plugin.username>
                 <profile.test>testdev</profile.test>
                 <spring.profiles.active>dev${profile.tls}${profile.no-liquibase}</spring.profiles.active>
             </properties>

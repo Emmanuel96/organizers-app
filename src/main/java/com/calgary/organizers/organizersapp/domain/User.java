@@ -79,6 +79,14 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
     @Column(name = "reset_date")
     private Instant resetDate = null;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_excluded_groups",
+        joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "group_id", referencedColumnName = "id")
+    )
+    private Set<Group> excludedGroups = new HashSet<>();
+
     @JsonIgnore
     @ManyToMany
     @JoinTable(
@@ -192,6 +200,14 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
 
     public void setAuthorities(Set<Authority> authorities) {
         this.authorities = authorities;
+    }
+
+    public Set<Group> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(Set<Group> groups) {
+        this.excludedGroups = groups;
     }
 
     @Override

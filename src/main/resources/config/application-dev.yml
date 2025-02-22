@@ -51,8 +51,8 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://postgres:5432/organizers-app
-    username: organizers-app-user
+    url: jdbc:postgresql://localhost:5432/organizers-app
+    username: postgres
     password: password
     driverClassName: org.postgresql.Driver
     hikari:
