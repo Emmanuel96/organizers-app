@@ -3,13 +3,13 @@
     <!-- <h1 class="display-4 custom-heading">Calgary Tech Events Calendar</h1> -->
 
     <div>
-      @if (account() !== null) {
+      <!-- @if (account() !== null) {
         <div class="alert alert-success desktop-only">
-          @if (account(); as accountRef) {
-            <full-calendar [options]="calendarOptions" #calendar></full-calendar>
-          }
-        </div>
-      } @else {
+          @if (account(); as accountRef) { -->
+      <full-calendar [options]="calendarOptions" #calendar></full-calendar>
+      <!-- }
+        </div> -->
+      <!-- } @else {
         <div class="alert alert-warning">
           <span>If you want to </span>
           <a class="alert-link" (click)="login()">sign in</a>
@@ -19,7 +19,7 @@
           <span>You don&apos;t have an account yet?</span>&nbsp;
           <a class="alert-link" routerLink="/account/register">Register a new account</a>
         </div>
-      }
+      } -->
     </div>
   </div>
 </div>
