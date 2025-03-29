@@ -199,16 +199,18 @@ public class EventResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of events in body.
      */
     @GetMapping("")
-    public List<Event> getAllEvents(@AuthenticationPrincipal Jwt jwt) {
+    public List<Event> getAllEvents() {
         LOG.debug("REST request to get all Events");
 
         org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            // throw new UnauthorizedException("User is not logged in");
-            return null;
-        }
-        String currentUserLogin = authentication.getName().toString();
 
+        // If the user is not authenticated, just return all events
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return eventRepository.findAll();
+        }
+
+        // Otherwise, apply filtering based on the logged-in user
+        String currentUserLogin = authentication.getName();
         User currentUser = userRepository.findOneByLogin(currentUserLogin).orElseThrow();
 
         Set<String> excludedGroupNames = currentUser
@@ -217,16 +219,12 @@ public class EventResource {
             .map(Group::getMeetup_group_name)
             .collect(Collectors.toSet());
 
-        System.out.println("Excluded group names: " + excludedGroupNames);
-
         List<Event> events = eventRepository.findAll();
 
-        List<Event> filteredEvents = events
+        return events
             .stream()
             .filter(event -> event.getGroupName() == null || !excludedGroupNames.contains(event.getGroupName()))
             .collect(Collectors.toList());
-
-        return filteredEvents;
     }
 
     /**
