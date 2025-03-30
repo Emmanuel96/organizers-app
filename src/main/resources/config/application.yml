@@ -95,7 +95,7 @@ spring:
     name: organizersApp
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgres://oluwatobiloba@localhost:5432/organizers-app
+    url: jdbc:postgres://organizers-app-user@localhost:5432/organizers-app
     username: postgres
     password: password
     driverClassName: org.postgresql.Driver

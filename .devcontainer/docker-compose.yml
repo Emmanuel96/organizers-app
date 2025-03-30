@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: ./.devcontainer/Dockerfile
+      args:
+        VARIANT: "17"           # Choose your variant (e.g., "17", "17-bullseye", or "17-buster")
+        INSTALL_MAVEN: "false"   # Set to "true" if you want Maven installed, and provide MAVEN_VERSION if needed
+        MAVEN_VERSION: ""
+        INSTALL_GRADLE: "false"  # Similarly for Gradle
+        GRADLE_VERSION: ""
+        NODE_VERSION: "none"     # Change if you want a specific Node.js version
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+      # Mount docker socket if you need docker-in-docker functionality
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "4200:4200"
+      - "3001:3001"
+      - "9000:9000"
+      - "8080:8080"
+    environment:
+      # You can add any additional environment variables here, for example:
+      - JAVA_HOME=/docker-java-home
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:16
+    container_name: organizer-postgres
+    environment:
+      POSTGRES_USER: organizers-app-user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: organizers-app
+    ports:
+      - '5432:5432'

@@ -16,7 +16,9 @@ export default class LoginComponent implements OnInit, AfterViewInit {
   username = viewChild.required<ElementRef>('username');
   clientId: any = '2qff8uujb6qsbo2rnarmh5p2du';
   clientSecret = 'krbnaft7ri8vaqbtpteo4s9ne0';
-  // redirectUri = 'https://b10315c1b7cd.ngrok.app/';
+  //
+
+  Uri = 'https://b10315c1b7cd.ngrok.app/';
   redirectUri = 'https://organizer-app-140b2a7a7c09.herokuapp.com/';
 
   // code = '3ae658e5a776fcf2f2db975e2dbb72e1';
@@ -58,18 +60,15 @@ export default class LoginComponent implements OnInit, AfterViewInit {
         this.authenticationError.set(false);
         if (!this.router.getCurrentNavigation()) {
           // There were no routing during login (eg from navigationToStoredUrl)
-          window.location.href = this.meetupAuthUrl;
-
+          // window.location.href = this.meetupAuthUrl;
           // get code and store in local storage
           // store on local storage
           // After redirection, to get the code parameter from the URL:
-          const urlParams = new URLSearchParams(window.location.search);
-          const code: any = urlParams.get('code');
-
-          sessionStorage.setItem('code', code);
-
+          // const urlParams = new URLSearchParams(window.location.search);
+          // const code: any = urlParams.get('code');
+          // sessionStorage.setItem('code', code);
           // eslint-disable-next-line no-console
-          console.info('code: ', code);
+          // console.info('code: ', code);
         }
       },
       error: () => this.authenticationError.set(true),

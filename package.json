@@ -54,7 +54,7 @@
     "prettier:format": "prettier --write \"{,src/**/,webpack/,.blueprint/**/}*.{md,json,yml,js,cjs,mjs,ts,cts,mts,java,html,css,scss}\"",
     "serve": "npm run start --",
     "services:up": "docker compose -f src/main/docker/services.yml up --wait",
-    "start": "ng serve --hmr",
+    "start": "ng serve --host 0.0.0.0 --disable-host-check --hmr",
     "start-tls": "npm run webapp:dev-ssl",
     "pretest": "npm run lint",
     "test": "ng test --coverage --log-heap-usage -w=2",
