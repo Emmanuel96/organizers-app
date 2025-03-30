@@ -3,49 +3,34 @@
     <!-- <h1 class="display-4 custom-heading">Calgary Tech Events Calendar</h1> -->
 
     <div>
-      @if (account() !== null) {
-        <div class="alert alert-success desktop-only">
-          @if (account(); as accountRef) {
-            <full-calendar [options]="calendarOptions" #calendar></full-calendar>
-          }
-        </div>
-      } @else {
-        <div class="alert alert-warning">
-          <span>If you want to </span>
-          <a class="alert-link" (click)="login()">sign in</a>
-        </div>
-
-        <div class="alert alert-warning">
-          <span>You don&apos;t have an account yet?</span>&nbsp;
-          <a class="alert-link" routerLink="/account/register">Register a new account</a>
-        </div>
-      }
+      <div class="desktop-only">
+        <full-calendar [options]="calendarOptions" #calendar></full-calendar>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="container mt-3">
-  @if (account() !== null) {
-    <div class="mobile-only">
-      <!-- <h5 class="text-black">All Events</h5> -->
-      <div *ngFor="let group of groupedEvents">
-        <h6 class="text-black fw-bold">{{ group.month }}</h6>
-        <div *ngFor="let event of group.events" class="d-flex align-items-center mb-3" (click)="handleMobileEvent(event)">
-          <div class="me-3">
-            <div class="date-box text-center bg-dark text-white rounded">
-              <div>{{ event.event_date | date: 'MMM' }}</div>
-              <div>{{ event.event_date | date: 'd' }}</div>
-            </div>
+  <div class="mobile-only">
+    <!-- <h5 class="text-black">All Events</h5> -->
+    <div *ngFor="let group of groupedEvents">
+      <h6 class="text-black fw-bold">{{ group.month }}</h6>
+      <div *ngFor="let event of group.events" class="d-flex align-items-center mb-3" (click)="handleMobileEvent(event)">
+        <div class="me-3">
+          <div class="date-box text-center bg-dark text-white rounded">
+            <div>{{ event.event_date | date: 'MMM' }}</div>
+            <div>{{ event.event_date | date: 'd' }}</div>
           </div>
-          <div class="flex-grow-1">
-            <h6 class="mb-1 text-black">
-              {{ event.event_group_name.charAt(0).toUpperCase() + event.event_group_name.slice(1).toLowerCase() }}
-            </h6>
-            <p class="mb-0 text-muted small">
-              {{ event.event_date | date: 'shortTime' }} MST | Venue: {{ event.event_location || 'Online Event' }}
-            </p>
-          </div>
-          <!-- <div>
+        </div>
+        <div class="flex-grow-1">
+          <h6 class="mb-1 text-black">
+            {{ event.event_group_name.charAt(0).toUpperCase() + event.event_group_name.slice(1).toLowerCase() }}
+          </h6>
+          <p class="mb-0 text-muted small">
+            {{ event.event_date | date: 'shortTime' }} MST | Venue: {{ event.event_location || 'Online Event' }}
+          </p>
+        </div>
+        <!-- <div>
             <button *ngIf="!event.added" class="btn btn-outline-secondary btn-sm">
               <i class="fas fa-plus"></i>
             </button>
@@ -54,11 +39,10 @@
             </button>
           </div> -->
 
-          <div></div>
-        </div>
+        <div></div>
       </div>
     </div>
-  }
+  </div>
 
   <div class="modal fade" id="groupNameModal" tabindex="-1" aria-labelledby="groupNameModalLabel" aria-hidden="true">
     <div class="modal-dialog">
