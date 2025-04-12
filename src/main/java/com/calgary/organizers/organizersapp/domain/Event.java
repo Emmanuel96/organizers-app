@@ -47,6 +47,12 @@ public class Event implements Serializable {
     @Column(name = "group_name")
     private String groupName;
 
+    @Column(name = "event_title")
+    private String eventTitle;
+
+    @Column(name = "event_url")
+    private String event_url;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -60,6 +66,27 @@ public class Event implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getEventTitle() {
+        return eventTitle;
+    }
+
+    public Event eventTitle(String eventTitle) {
+        this.setEventTitle(eventTitle);
+        return this;
+    }
+
+    public String getEvent_url() {
+        return event_url;
+    }
+
+    public void setEvent_url(String eventUrl) {
+        this.event_url = eventUrl;
+    }
+
+    public void setEventTitle(String eventTitle) {
+        this.eventTitle = eventTitle;
     }
 
     public ZonedDateTime getEvent_date() {

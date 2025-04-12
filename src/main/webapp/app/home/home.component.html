@@ -69,6 +69,10 @@
           <p class="fw-bold"><strong>Location:</strong></p>
           <p>{{ eventLocation }}</p>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
+          <a [href]="eventUrl" target="_blank" class="btn btn-primary">View Event</a>
+        </div>
       </div>
     </div>
   </div>

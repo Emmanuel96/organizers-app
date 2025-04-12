@@ -74,6 +74,8 @@ public class MeetupService {
                 JsonNode eventNode = edge.get("node");
                 Event event = new Event();
                 // event.setevent_(eventNode.get("title").asText());
+                event.setEvent_url("https://www.meetup.com/" + groupUrlName + "/events/" + eventNode.get("id").asText());
+                event.setEventTitle(eventNode.get("title").asText());
                 event.setEvent_description(eventNode.get("title").asText());
                 event.setEvent_date(ZonedDateTime.parse(eventNode.get("dateTime").asText()));
                 event.setEvent_group_name(groupUrlName);

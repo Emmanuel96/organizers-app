@@ -36,6 +36,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
   eventDescription = '';
   eventDate = '';
   eventLocation = '';
+  eventUrl = '';
   eventGroup: any;
   events: any[] = [];
 
@@ -105,6 +106,9 @@ export default class HomeComponent implements OnInit, OnDestroy {
       this.eventDate = this.convertToMountainTime(event.event_date);
       this.eventLocation = event.event_location ? event.event_location : 'Online Event';
       this.eventGroup = event.event_group_name;
+      this.eventUrl = event.event_url;
+      // eslint-disable-next-line no-console
+      console.info('eventUrl:', this.eventUrl);
     }
 
     this.openModal();
@@ -246,6 +250,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
             date: value.event_date?.format('YYYY-MM-DD').toString(),
             title: value.event_description ?? '',
             groupName: value.event_group_name,
+            event_url: value.event_url,
           };
         });
 
