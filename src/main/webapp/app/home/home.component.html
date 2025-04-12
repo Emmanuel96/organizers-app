@@ -33,7 +33,7 @@
           </div>
           <div class="flex-grow-1">
             <h6 class="mb-1 text-black">
-              {{ event.event_group_name.charAt(0).toUpperCase() + event.event_group_name.slice(1).toLowerCase() }}
+              {{ event.event_description.length > 30 ? (event.event_description | slice: 0 : 30) + '...' : event.event_description }}
             </h6>
             <p class="mb-0 text-muted small">
               {{ event.event_date | date: 'shortTime' }} MST | Venue: {{ event.event_location || 'Online Event' }}
@@ -54,15 +54,16 @@
     </div>
   </div>
 
-  <div class="modal fade" id="groupNameModal" tabindex="-1" aria-labelledby="groupNameModalLabel" aria-hidden="true">
+  <div class="modal fade" id="groupNameModal" aria-labelledby="groupNameModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="groupNameModalLabel">{{ eventGroup }} Group</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" (click)="close()" class="btn-close" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p><strong>Description Summary:</strong> {{ eventDescription }}</p>
+          <p class="fw-bold"><strong>Description Summary:</strong></p>
+          <p>{{ eventDescription }}</p>
           <p><strong>Date:</strong> {{ eventDate }} MST</p>
           <p><strong>Location:</strong> {{ eventLocation }}</p>
         </div>
