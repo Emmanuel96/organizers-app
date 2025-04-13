@@ -6,6 +6,7 @@ import com.calgary.organizers.organizersapp.service.EventService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -98,6 +99,8 @@ public class MeetupService {
         List<Event> oldEvents = eventService.getDynamicEventsForGroup(groupName);
         List<Event> newEvents = fetchEvents(accessToken, groupName);
         Map<String, Event> oldEventsMap = oldEvents.stream().collect(Collectors.toMap(Event::getEventId, Function.identity()));
+        ZonedDateTime now = ZonedDateTime.now();
+
         for (Event newEvent : newEvents) {
             Event e = oldEventsMap.get(newEvent.getEventId());
             if (Objects.nonNull(e)) {
@@ -105,7 +108,13 @@ public class MeetupService {
             }
         }
         eventService.saveEvents(newEvents);
-        Collection<Event> eventsForRemove = CollectionUtils.removeAll(oldEvents, newEvents, new EventEquator());
+
+        Collection<Event> eventsForRemove = oldEvents
+            .stream()
+            .filter(event -> event.getEvent_date().isAfter(now))
+            .filter(event -> newEvents.stream().noneMatch(newEvent -> new EventEquator().equate(event, newEvent)))
+            .collect(Collectors.toList());
+
         eventService.deleteEvents(eventsForRemove);
     }
 
