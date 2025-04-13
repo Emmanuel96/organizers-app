@@ -37,10 +37,6 @@ export default class LoginComponent implements OnInit, AfterViewInit {
   private loginService = inject(LoginService);
   private router = inject(Router);
 
-  private meetupAuthUrl =
-    // 'https://secure.meetup.com/oauth2/authorize?client_id=2qff8uujb6qsbo2rnarmh5p2du&response_type=code&redirect_uri=https://organizer-app-140b2a7a7c09.herokuapp.com/';
-    'https://secure.meetup.com/oauth2/authorize?client_id=2qff8uujb6qsbo2rnarmh5p2du&response_type=code&redirect_uri=https://b10315c1b7cd.ngrok.app/';
-
   ngOnInit(): void {
     // if already authenticated then navigate to home page
     this.accountService.identity().subscribe(() => {
@@ -55,20 +51,12 @@ export default class LoginComponent implements OnInit, AfterViewInit {
   }
 
   login(): void {
+    console.error('In the login ');
     this.loginService.login(this.loginForm.getRawValue()).subscribe({
       next: () => {
         this.authenticationError.set(false);
         if (!this.router.getCurrentNavigation()) {
-          // There were no routing during login (eg from navigationToStoredUrl)
-          // window.location.href = this.meetupAuthUrl;
-          // get code and store in local storage
-          // store on local storage
-          // After redirection, to get the code parameter from the URL:
-          // const urlParams = new URLSearchParams(window.location.search);
-          // const code: any = urlParams.get('code');
-          // sessionStorage.setItem('code', code);
-          // eslint-disable-next-line no-console
-          // console.info('code: ', code);
+          this.router.navigate(['/']);
         }
       },
       error: () => this.authenticationError.set(true),
