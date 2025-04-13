@@ -150,3 +150,32 @@
   -webkit-animation-delay: 0s;
   animation-delay: 0s;
 }
+.typing-effect {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 24px;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflowing text */
+  width: 0; /* Start with no visible text */
+  border-right: 2px solid black; /* Simulate a cursor */
+  animation:
+    typing 1s steps(22, end),
+    blink 0.2s step-end infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 18ch; /* Adjust based on the number of characters */
+  }
+}
+
+@keyframes blink {
+  from {
+    border-color: black;
+  }
+  to {
+    border-color: transparent;
+  }
+}
