@@ -11,5 +11,6 @@ import org.springframework.stereotype.Repository;
 @SuppressWarnings("unused")
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
-    List<Event> findAllByDynamicIsTrueAndGroupName(String groupName);
+    List<Event> findAllByDynamicIsTrueAndEventGroupName(String groupName);
+    List<Event> findAllByDynamicIsTrueAndEventId(String eventId);
 }

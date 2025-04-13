@@ -179,8 +179,8 @@ public class EventResource {
                 if (event.getEvent_description() != null) {
                     existingEvent.setEvent_description(event.getEvent_description());
                 }
-                if (event.getEvent_group_name() != null) {
-                    existingEvent.setEvent_group_name(event.getEvent_group_name());
+                if (event.getEventGroupName() != null) {
+                    existingEvent.setEventGroupName(event.getEventGroupName());
                 }
 
                 return existingEvent;
@@ -223,7 +223,7 @@ public class EventResource {
 
         return events
             .stream()
-            .filter(event -> event.getGroupName() == null || !excludedGroupNames.contains(event.getGroupName()))
+            .filter(event -> event.getEventGroupName() == null || !excludedGroupNames.contains(event.getEventGroupName()))
             .collect(Collectors.toList());
     }
 

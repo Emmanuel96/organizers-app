@@ -81,8 +81,7 @@ class EventResourceIT {
         return new Event()
             .event_date(DEFAULT_EVENT_DATE)
             .event_location(DEFAULT_EVENT_LOCATION)
-            .event_description(DEFAULT_EVENT_DESCRIPTION)
-            .event_group_name(DEFAULT_EVENT_GROUP_NAME);
+            .event_description(DEFAULT_EVENT_DESCRIPTION);
     }
 
     /**
@@ -95,8 +94,7 @@ class EventResourceIT {
         return new Event()
             .event_date(UPDATED_EVENT_DATE)
             .event_location(UPDATED_EVENT_LOCATION)
-            .event_description(UPDATED_EVENT_DESCRIPTION)
-            .event_group_name(UPDATED_EVENT_GROUP_NAME);
+            .event_description(UPDATED_EVENT_DESCRIPTION);
     }
 
     @BeforeEach
@@ -206,11 +204,7 @@ class EventResourceIT {
         Event updatedEvent = eventRepository.findById(event.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedEvent are not directly saved in db
         em.detach(updatedEvent);
-        updatedEvent
-            .event_date(UPDATED_EVENT_DATE)
-            .event_location(UPDATED_EVENT_LOCATION)
-            .event_description(UPDATED_EVENT_DESCRIPTION)
-            .event_group_name(UPDATED_EVENT_GROUP_NAME);
+        updatedEvent.event_date(UPDATED_EVENT_DATE).event_location(UPDATED_EVENT_LOCATION).event_description(UPDATED_EVENT_DESCRIPTION);
 
         restEventMockMvc
             .perform(
@@ -315,8 +309,7 @@ class EventResourceIT {
         partialUpdatedEvent
             .event_date(UPDATED_EVENT_DATE)
             .event_location(UPDATED_EVENT_LOCATION)
-            .event_description(UPDATED_EVENT_DESCRIPTION)
-            .event_group_name(UPDATED_EVENT_GROUP_NAME);
+            .event_description(UPDATED_EVENT_DESCRIPTION);
 
         restEventMockMvc
             .perform(

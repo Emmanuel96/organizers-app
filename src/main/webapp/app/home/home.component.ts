@@ -89,7 +89,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
       this.eventDescription = event.event_description;
       this.eventDate = this.convertToMountainTime(event.event_date);
       this.eventLocation = event.event_location ? event.event_location : 'Online Event';
-      this.eventGroup = event.event_group_name;
+      this.eventGroup = event.eventGroupDisplayName;
       this.eventTitle = event.event_group_name;
     }
 
@@ -105,7 +105,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
       this.eventDescription = event.event_description;
       this.eventDate = this.convertToMountainTime(event.event_date);
       this.eventLocation = event.event_location ? event.event_location : 'Online Event';
-      this.eventGroup = event.event_group_name;
+      this.eventGroup = event.eventGroupDisplayName;
       this.eventUrl = event.event_url;
       // eslint-disable-next-line no-console
       console.info('eventUrl:', this.eventUrl);
@@ -251,6 +251,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
             title: value.event_description ?? '',
             groupName: value.event_group_name,
             event_url: value.event_url,
+            event_group_display_name: value.eventGroupDisplayName,
           };
         });
 

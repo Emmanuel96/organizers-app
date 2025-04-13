@@ -35,20 +35,20 @@ public class Event implements Serializable {
     @Column(name = "event_description")
     private String event_description;
 
-    @Column(name = "event_group_name")
-    private String event_group_name;
-
     @Column(name = "dynamic")
     private Boolean dynamic;
 
     @Column(name = "event_id")
     private String eventId;
 
-    @Column(name = "group_name")
-    private String groupName;
+    @Column(name = "event_group_name")
+    private String eventGroupName;
+
+    @Column(name = "event_group_display_name")
+    private String eventGroupDisplayName;
 
     @Column(name = "event_title")
-    private String eventTitle;
+    private String event_title;
 
     @Column(name = "event_url")
     private String event_url;
@@ -68,8 +68,16 @@ public class Event implements Serializable {
         this.id = id;
     }
 
+    public String getEventGroupDisplayName() {
+        return eventGroupDisplayName;
+    }
+
+    public void setEventGroupDisplayName(String eventGroupDisplayName) {
+        this.eventGroupDisplayName = eventGroupDisplayName;
+    }
+
     public String getEventTitle() {
-        return eventTitle;
+        return event_title;
     }
 
     public Event eventTitle(String eventTitle) {
@@ -86,7 +94,7 @@ public class Event implements Serializable {
     }
 
     public void setEventTitle(String eventTitle) {
-        this.eventTitle = eventTitle;
+        this.event_title = eventTitle;
     }
 
     public ZonedDateTime getEvent_date() {
@@ -128,19 +136,6 @@ public class Event implements Serializable {
         this.event_description = event_description;
     }
 
-    public String getEvent_group_name() {
-        return this.event_group_name;
-    }
-
-    public Event event_group_name(String event_group_name) {
-        this.setEvent_group_name(event_group_name);
-        return this;
-    }
-
-    public void setEvent_group_name(String event_group_name) {
-        this.event_group_name = event_group_name;
-    }
-
     public Boolean getDynamic() {
         return dynamic;
     }
@@ -157,12 +152,12 @@ public class Event implements Serializable {
         this.eventId = eventId;
     }
 
-    public String getGroupName() {
-        return groupName;
+    public String getEventGroupName() {
+        return eventGroupName;
     }
 
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
+    public void setEventGroupName(String groupName) {
+        this.eventGroupName = groupName;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
@@ -192,7 +187,7 @@ public class Event implements Serializable {
             ", event_date='" + getEvent_date() + "'" +
             ", event_location='" + getEvent_location() + "'" +
             ", event_description='" + getEvent_description() + "'" +
-            ", event_group_name='" + getEvent_group_name() + "'" +
+            ", event_group_name='" + getEventGroupName() + "'" +
             "}";
     }
 }

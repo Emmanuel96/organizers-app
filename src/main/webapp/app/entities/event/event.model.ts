@@ -7,6 +7,8 @@ export interface IEvent {
   event_description?: string | null;
   event_group_name?: string | null;
   event_url?: string | null;
+  event_group_display_name?: string | null;
+  eventGroupDisplayName?: string | null;
 }
 
 export type NewEvent = Omit<IEvent, 'id'> & { id: null };

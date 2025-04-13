@@ -20,7 +20,7 @@ public class EventService {
     }
 
     public List<Event> getDynamicEventsForGroup(String groupName) {
-        return eventRepository.findAllByDynamicIsTrueAndGroupName(groupName);
+        return eventRepository.findAllByDynamicIsTrueAndEventGroupName(groupName);
     }
 
     public void deleteEvents(Collection<Event> eventsForRemove) {

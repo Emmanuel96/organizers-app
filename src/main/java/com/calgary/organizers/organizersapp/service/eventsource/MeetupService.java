@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,7 +45,7 @@ public class MeetupService {
 
         // Create the GraphQL query
         String graphqlQuery =
-            "{ \"query\": \"query ($groupUrlname: String!, $input: ConnectionInput!) { groupByUrlname(urlname: $groupUrlname) { upcomingEvents(input: $input) { edges { node { id title dateTime venue { name address } } } } } }\", \"variables\": { \"groupUrlname\": \"" +
+            "{ \"query\": \"query ($groupUrlname: String!, $input: ConnectionInput!) { groupByUrlname(urlname: $groupUrlname) { name upcomingEvents(input: $input) { edges { node { id title dateTime venue { name address } } } } } }\", \"variables\": { \"groupUrlname\": \"" +
             groupUrlName +
             "\", \"input\": { \"first\": 10 } } }";
 
@@ -78,11 +79,11 @@ public class MeetupService {
                 event.setEventTitle(eventNode.get("title").asText());
                 event.setEvent_description(eventNode.get("title").asText());
                 event.setEvent_date(ZonedDateTime.parse(eventNode.get("dateTime").asText()));
-                event.setEvent_group_name(groupUrlName);
+                event.setEventGroupName(groupUrlName);
                 event.setEvent_location(eventNode.at("/venue/address").asText());
                 event.setEvent_location(eventNode.at("/venue/address").asText());
                 event.setEventId(eventNode.get("id").asText());
-                event.setGroupName(groupUrlName);
+                event.setEventGroupDisplayName(rootNode.at("/data/groupByUrlname/name").asText());
                 event.setDynamic(true);
                 eventsToSave.add(event);
             }
