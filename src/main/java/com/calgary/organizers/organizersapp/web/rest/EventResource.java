@@ -6,7 +6,7 @@ import com.calgary.organizers.organizersapp.domain.User;
 import com.calgary.organizers.organizersapp.repository.EventRepository;
 import com.calgary.organizers.organizersapp.repository.UserRepository;
 import com.calgary.organizers.organizersapp.service.EventService;
-import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
+import com.calgary.organizers.organizersapp.service.eventsource.meetup.MeetupService;
 import com.calgary.organizers.organizersapp.service.oauth.ServerFlowProvider;
 import com.calgary.organizers.organizersapp.web.rest.errors.BadRequestAlertException;
 import jakarta.persistence.criteria.Predicate;

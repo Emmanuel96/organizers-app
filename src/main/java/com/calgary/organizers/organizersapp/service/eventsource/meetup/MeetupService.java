@@ -1,4 +1,4 @@
-package com.calgary.organizers.organizersapp.service.eventsource;
+package com.calgary.organizers.organizersapp.service.eventsource.meetup;
 
 import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.scheduled.EventEquator;
@@ -6,17 +6,15 @@ import com.calgary.organizers.organizersapp.service.EventService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -46,9 +44,31 @@ public class MeetupService {
 
         // Create the GraphQL query
         String graphqlQuery =
-            "{ \"query\": \"query ($groupUrlname: String!, $input: ConnectionInput!) { groupByUrlname(urlname: $groupUrlname) { name upcomingEvents(input: $input) { edges { node { id title dateTime venue { name address } } } } } }\", \"variables\": { \"groupUrlname\": \"" +
+            "{ \"query\": \"query ($groupUrlname: String!, $input: ConnectionInput!) { " +
+            "  groupByUrlname(urlname: $groupUrlname) { " +
+            "    name " +
+            "    upcomingEvents(input: $input) { " +
+            "      edges { " +
+            "        node { " +
+            "          id " +
+            "          title " +
+            "          description " +
+            "          dateTime " +
+            "          venue { " +
+            "            name " +
+            "            address " +
+            "          } " +
+            "        } " +
+            "      } " +
+            "    } " +
+            "  } " +
+            "}\", " +
+            "\"variables\": { " +
+            "  \"groupUrlname\": \"" +
             groupUrlName +
-            "\", \"input\": { \"first\": 10 } } }";
+            "\", " +
+            "  \"input\": { \"first\": 10 } " +
+            "} }";
 
         HttpEntity<String> graphqlRequest = new HttpEntity<>(graphqlQuery, graphqlHeaders);
 
@@ -75,10 +95,9 @@ public class MeetupService {
             for (JsonNode edge : eventsNode) {
                 JsonNode eventNode = edge.get("node");
                 Event event = new Event();
-                // event.setevent_(eventNode.get("title").asText());
                 event.setEvent_url("https://www.meetup.com/" + groupUrlName + "/events/" + eventNode.get("id").asText());
                 event.setEventTitle(eventNode.get("title").asText());
-                event.setEvent_description(eventNode.get("title").asText());
+                event.setEvent_description(StringUtils.left(eventNode.get("description").asText(), 255));
                 event.setEvent_date(ZonedDateTime.parse(eventNode.get("dateTime").asText()));
                 event.setEventGroupName(groupUrlName);
                 event.setEvent_location(eventNode.at("/venue/address").asText());

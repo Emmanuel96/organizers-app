@@ -1,5 +1,6 @@
 package com.calgary.organizers.organizersapp.domain;
 
+import com.calgary.organizers.organizersapp.enums.EventSource;
 import jakarta.persistence.*;
 import java.io.Serializable;
 
@@ -24,6 +25,13 @@ public class Group implements Serializable {
 
     @Column(name = "meetup_group_name")
     private String meetup_group_name;
+
+    @Column(name = "event_source")
+    @Enumerated(EnumType.STRING)
+    private EventSource eventSource;
+
+    @Column(name = "eventbrite_organizer_id")
+    private String eventbriteOrganizerId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -67,6 +75,22 @@ public class Group implements Serializable {
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+
+    public EventSource getEventSource() {
+        return eventSource;
+    }
+
+    public void setEventSource(EventSource eventSource) {
+        this.eventSource = eventSource;
+    }
+
+    public String getEventbriteOrganizerId() {
+        return eventbriteOrganizerId;
+    }
+
+    public void setEventbriteOrganizerId(String eventbriteOrganizerId) {
+        this.eventbriteOrganizerId = eventbriteOrganizerId;
+    }
 
     @Override
     public boolean equals(Object o) {
