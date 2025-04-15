@@ -20,6 +20,8 @@ type GroupFormGroupContent = {
   id: FormControl<IGroup['id'] | NewGroup['id']>;
   name: FormControl<IGroup['name']>;
   meetup_group_name: FormControl<IGroup['meetup_group_name']>;
+  eventSource: FormControl<IGroup['eventSource']>;
+  eventbriteOrganizerId: FormControl<IGroup['eventbriteOrganizerId']>;
 };
 
 export type GroupFormGroup = FormGroup<GroupFormGroupContent>;
@@ -41,26 +43,39 @@ export class GroupFormService {
       ),
       name: new FormControl(groupRawValue.name),
       meetup_group_name: new FormControl(groupRawValue.meetup_group_name),
+      eventSource: new FormControl(groupRawValue.eventSource ?? 'MEET_UP', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      eventbriteOrganizerId: new FormControl(groupRawValue.eventbriteOrganizerId),
     });
   }
 
   getGroup(form: GroupFormGroup): IGroup | NewGroup {
-    return form.getRawValue() as IGroup | NewGroup;
+    const raw = form.getRawValue() as IGroup | NewGroup;
+    if (raw.eventSource === 'MEET_UP') {
+      raw.eventbriteOrganizerId = null;
+    } else if (raw.eventSource === 'EVENTBRITE') {
+      raw.meetup_group_name = null;
+    }
+    return raw;
   }
 
   resetForm(form: GroupFormGroup, group: GroupFormGroupInput): void {
     const groupRawValue = { ...this.getFormDefaults(), ...group };
-    form.reset(
-      {
-        ...groupRawValue,
-        id: { value: groupRawValue.id, disabled: true },
-      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */,
-    );
+    form.reset({
+      ...groupRawValue,
+      id: { value: groupRawValue.id, disabled: true },
+      eventSource: groupRawValue.eventSource ?? 'MEET_UP',
+    } as any);
   }
 
-  private getFormDefaults(): GroupFormDefaults {
+  private getFormDefaults(): GroupFormDefaults & Pick<IGroup, 'eventSource' | 'meetup_group_name' | 'eventbriteOrganizerId'> {
     return {
       id: null,
+      eventSource: 'MEET_UP',
+      meetup_group_name: null,
+      eventbriteOrganizerId: null,
     };
   }
 }

@@ -26,7 +26,17 @@
         </ng-container>
         <div class="d-flex align-items-center mb-3" (click)="handleMobileEvent(event)">
           <div class="me-3">
-            <div class="date-box text-center bg-dark text-white rounded">
+            <div
+              class="date-box text-center text-white rounded"
+              [ngStyle]="{
+                'background-color':
+                  event.eventbriteOrganizerId && event.eventbriteOrganizerId.trim() !== ''
+                    ? '#FF5733'
+                    : event.eventGroupName && event.eventGroupName.trim() !== ''
+                      ? '#E51937'
+                      : '#6c757d',
+              }"
+            >
               <div>{{ event.event_date | date: 'MMM' }}</div>
               <div>{{ event.event_date | date: 'd' }}</div>
             </div>

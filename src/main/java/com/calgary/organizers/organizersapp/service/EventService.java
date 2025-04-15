@@ -23,6 +23,10 @@ public class EventService {
         return eventRepository.findAllByDynamicIsTrueAndEventGroupName(groupName);
     }
 
+    public List<Event> getEventsForEventbriteOrganizerId(String eventbriteOrganizerId) {
+        return eventRepository.findAllByEventbriteOrganizerId(eventbriteOrganizerId);
+    }
+
     public void deleteEvents(Collection<Event> eventsForRemove) {
         eventRepository.deleteAll(eventsForRemove);
     }

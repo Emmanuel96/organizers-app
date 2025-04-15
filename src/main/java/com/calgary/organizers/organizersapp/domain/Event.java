@@ -53,6 +53,9 @@ public class Event implements Serializable {
     @Column(name = "event_url")
     private String event_url;
 
+    @Column(name = "eventbrite_organizer_id")
+    private String eventbriteOrganizerId;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -158,6 +161,14 @@ public class Event implements Serializable {
 
     public void setEventGroupName(String groupName) {
         this.eventGroupName = groupName;
+    }
+
+    public String getEventbriteOrganizerId() {
+        return eventbriteOrganizerId;
+    }
+
+    public void setEventbriteOrganizerId(String eventbriteOrganizerId) {
+        this.eventbriteOrganizerId = eventbriteOrganizerId;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

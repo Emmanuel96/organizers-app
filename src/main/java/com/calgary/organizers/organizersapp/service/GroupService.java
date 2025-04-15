@@ -2,8 +2,10 @@ package com.calgary.organizers.organizersapp.service;
 
 import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.domain.Group;
+import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.repository.GroupRepository;
-import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
+import com.calgary.organizers.organizersapp.service.eventsource.eventbrite.EventbriteService;
+import com.calgary.organizers.organizersapp.service.eventsource.meetup.MeetupService;
 import com.calgary.organizers.organizersapp.service.oauth.JwtFlowProvider;
 import java.util.List;
 import java.util.Optional;
@@ -26,17 +28,20 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final JwtFlowProvider jwtFlowProvider;
     private final MeetupService meetupService;
+    private final EventbriteService eventbriteService;
     private final EventService eventService;
 
     public GroupService(
         GroupRepository groupRepository,
         JwtFlowProvider jwtFlowProvider,
         MeetupService meetupService,
+        EventbriteService eventbriteService,
         EventService eventService
     ) {
         this.groupRepository = groupRepository;
         this.jwtFlowProvider = jwtFlowProvider;
         this.meetupService = meetupService;
+        this.eventbriteService = eventbriteService;
         this.eventService = eventService;
     }
 
@@ -49,10 +54,26 @@ public class GroupService {
     @Transactional
     public Group save(Group group) {
         LOG.debug("Request to save Group : {}", group);
+        group.setEventSource(EventSource.MEET_UP);
         String accessToken = jwtFlowProvider.getAccessToken();
         meetupService.verifyGroupParameters(group.getMeetup_group_name(), accessToken);
         Group savedGroup = groupRepository.save(group);
         meetupService.syncEventsForGroup(accessToken, savedGroup.getMeetup_group_name());
+        return savedGroup;
+    }
+
+    /**
+     * Save a group.
+     *
+     * @param group the entity to save.
+     * @return the persisted entity.
+     */
+    @Transactional
+    public Group saveEventbrite(Group group) {
+        LOG.debug("Request to save Group : {}", group);
+        group.setEventSource(EventSource.EVENTBRITE);
+        Group savedGroup = groupRepository.save(group);
+        eventbriteService.syncEventsForGroup(savedGroup.getEventbriteOrganizerId());
         return savedGroup;
     }
 
