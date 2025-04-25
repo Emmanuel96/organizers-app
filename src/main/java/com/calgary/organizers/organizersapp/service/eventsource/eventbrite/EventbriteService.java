@@ -1,7 +1,9 @@
 package com.calgary.organizers.organizersapp.service.eventsource.eventbrite;
 
 import com.calgary.organizers.organizersapp.domain.Event;
+import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.service.EventService;
+import com.calgary.organizers.organizersapp.service.eventsource.EventSourceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +26,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
-public class EventbriteService {
+public class EventbriteService implements EventSourceService {
 
     private final RestTemplate restTemplate;
     private final EventService eventService;
@@ -34,12 +36,13 @@ public class EventbriteService {
         this.eventService = eventService;
     }
 
-    public List<Event> fetchEvents(String eventbriteOrganizerId) {
+    @Override
+    public List<Event> fetchEvents(String organizerId) {
         List<Event> results = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
 
         //For this endpoint eventbrite has max page size 30. We fetch first page.
-        String idOnlyUrl = "https://www.eventbrite.ca/org/" + eventbriteOrganizerId + "/showmore/?page_size=30&type=future";
+        String idOnlyUrl = "https://www.eventbrite.ca/org/" + organizerId + "/showmore/?page_size=30&type=future";
 
         ResponseEntity<String> idResponse = restTemplate.getForEntity(idOnlyUrl, String.class);
         if (!idResponse.getStatusCode().is2xxSuccessful()) {
@@ -56,7 +59,7 @@ public class EventbriteService {
                     seriesEventIds.add(e.get("id").asText());
                 } else {
                     Event ev = new Event();
-                    ev.setEventbriteOrganizerId(e.path("organizer").path("id").asText());
+                    ev.setOrganizerId(e.path("organizer").path("id").asText());
                     ev.setEventGroupDisplayName(e.path("organizer").path("name").asText());
                     ev.setEventId(e.path("id").asText());
                     ev.setEventTitle(e.path("name").path("text").asText());
@@ -64,6 +67,7 @@ public class EventbriteService {
                     ev.setEvent_description(StringUtils.left(e.path("summary").asText(), 255));
                     ev.setEvent_date(ZonedDateTime.parse(e.path("start").path("utc").asText()));
                     ev.setEvent_location(e.path("primary_venue_id").asText(null));
+                    ev.setEventSource(EventSource.EVENTBRITE);
                     ev.setDynamic(true);
                     results.add(ev);
                 }
@@ -97,7 +101,7 @@ public class EventbriteService {
                     for (JsonNode seriesNode : node.get("series").get("next_dates")) {
                         Event ev = new Event();
                         //TODO: get this data from Group entity
-                        ev.setEventbriteOrganizerId(node.path("primary_organizer_id").asText());
+                        ev.setOrganizerId(node.path("primary_organizer_id").asText());
                         ev.setEventGroupDisplayName(node.path("primary_organizer").path("name").asText());
                         ev.setEventId(seriesNode.path("id").asText());
                         ev.setEventTitle(node.path("name").asText());
@@ -106,6 +110,7 @@ public class EventbriteService {
                         ev.setEvent_date(ZonedDateTime.parse(seriesNode.path("start").asText()));
                         ev.setEvent_location(node.path("primary_venue_id").asText(null));
                         ev.setDynamic(true);
+                        ev.setEventSource(EventSource.EVENTBRITE);
                         evs.add(ev);
                     }
                     results.addAll(evs);
@@ -118,9 +123,10 @@ public class EventbriteService {
     }
 
     @Transactional
-    public void syncEventsForGroup(String eventbriteOrganizerId) {
-        List<Event> oldEvents = eventService.getEventsForEventbriteOrganizerId(eventbriteOrganizerId);
-        List<Event> newEvents = fetchEvents(eventbriteOrganizerId);
+    @Override
+    public void syncEventsForGroup(String organizerId) {
+        List<Event> oldEvents = eventService.getEventsForOrganizerId(organizerId);
+        List<Event> newEvents = fetchEvents(organizerId);
         Map<String, Event> oldEventsMap = oldEvents.stream().collect(Collectors.toMap(Event::getEventId, Function.identity(), (x, y) -> x));
         for (Event newEvent : newEvents) {
             Event e = oldEventsMap.get(newEvent.getEventId());
@@ -145,5 +151,15 @@ public class EventbriteService {
             }
         );
         eventService.deleteEvents(eventsForRemove);
+    }
+
+    @Override
+    public EventSource getEventSource() {
+        return EventSource.EVENTBRITE;
+    }
+
+    @Override
+    public void verifyOrganizerParameters(String organizerId) {
+        //TODO: add verification logic
     }
 }

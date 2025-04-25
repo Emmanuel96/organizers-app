@@ -19,12 +19,8 @@ public class EventService {
         eventRepository.saveAll(events);
     }
 
-    public List<Event> getDynamicEventsForGroup(String groupName) {
-        return eventRepository.findAllByDynamicIsTrueAndEventGroupName(groupName);
-    }
-
-    public List<Event> getEventsForEventbriteOrganizerId(String eventbriteOrganizerId) {
-        return eventRepository.findAllByEventbriteOrganizerId(eventbriteOrganizerId);
+    public List<Event> getEventsForOrganizerId(String organizerId) {
+        return eventRepository.findAllByOrganizerId(organizerId);
     }
 
     public void deleteEvents(Collection<Event> eventsForRemove) {

@@ -20,9 +20,7 @@ export class GroupService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/groups');
 
   create(group: NewGroup): Observable<EntityResponseType> {
-    const isEventbrite = group.eventSource === 'EVENTBRITE';
-    const endpoint = isEventbrite ? `${this.resourceUrl}/eventbrite` : this.resourceUrl;
-    return this.http.post<IGroup>(endpoint, group, { observe: 'response' });
+    return this.http.post<IGroup>(this.resourceUrl, group, { observe: 'response' });
   }
 
   update(group: IGroup): Observable<EntityResponseType> {

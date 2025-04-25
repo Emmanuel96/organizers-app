@@ -27,14 +27,14 @@
         </div>
 
         <div class="mb-3" *ngIf="editForm.get('eventSource')?.value === 'MEET_UP'">
-          <label class="form-label" for="field_meetup_group_name">Meetup Group Name</label>
+          <label class="form-label" for="field_organizerId">Meetup Group Name</label>
           <input
             type="text"
             class="form-control"
-            name="meetup_group_name"
-            id="field_meetup_group_name"
-            data-cy="meetup_group_name"
-            formControlName="meetup_group_name"
+            name="organizerId"
+            id="field_organizerId"
+            data-cy="organizerId"
+            formControlName="organizerId"
           />
         </div>
 
@@ -43,10 +43,10 @@
           <input
             type="text"
             class="form-control"
-            name="eventbriteOrganizerId"
+            name="organizerId"
             id="field_eventbriteOrganizerId"
-            data-cy="eventbriteOrganizerId"
-            formControlName="eventbriteOrganizerId"
+            data-cy="organizerId"
+            formControlName="organizerId"
           />
         </div>
       </div>

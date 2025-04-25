@@ -248,9 +248,9 @@ export default class HomeComponent implements OnInit, OnDestroy {
         this.calendarOptions.events = events.body?.map(value => {
           // Determine event source and assign a color
           let eventColor = '#3788d8'; // default color
-          if (value.eventbriteOrganizerId && value.eventbriteOrganizerId.trim() !== '') {
+          if (value.eventSource === 'EVENTBRITE') {
             eventColor = '#FF5733';
-          } else if (value.eventGroupName && value.eventGroupName.trim() !== '') {
+          } else if (value.eventSource === 'MEET_UP') {
             eventColor = '#E51937';
           }
           return {
@@ -258,7 +258,7 @@ export default class HomeComponent implements OnInit, OnDestroy {
             // Ensure that event_date is formatted correctly
             date: value.event_date ? value.event_date.format('YYYY-MM-DD').toString() : '',
             title: value.eventTitle ?? '',
-            groupName: value.eventGroupName,
+            groupName: value.organizerId,
             event_url: value.event_url,
             event_group_display_name: value.eventGroupDisplayName,
             backgroundColor: eventColor,

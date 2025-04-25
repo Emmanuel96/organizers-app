@@ -34,7 +34,7 @@ type EventFormGroupContent = {
   event_date: FormControl<EventFormRawValue['event_date']>;
   event_location: FormControl<EventFormRawValue['event_location']>;
   event_description: FormControl<EventFormRawValue['event_description']>;
-  event_group_name: FormControl<EventFormRawValue['eventGroupName']>;
+  event_group_name: FormControl<EventFormRawValue['organizerId']>;
 };
 
 export type EventFormGroup = FormGroup<EventFormGroupContent>;
@@ -57,7 +57,7 @@ export class EventFormService {
       event_date: new FormControl(eventRawValue.event_date),
       event_location: new FormControl(eventRawValue.event_location),
       event_description: new FormControl(eventRawValue.event_description),
-      event_group_name: new FormControl(eventRawValue.eventGroupName),
+      event_group_name: new FormControl(eventRawValue.organizerId),
     });
   }
 

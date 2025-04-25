@@ -7,13 +7,13 @@ export const sampleWithRequiredData: IGroup = {
 export const sampleWithPartialData: IGroup = {
   id: 23261,
   name: 'unbalance poor little',
-  meetup_group_name: 'lest fairly',
+  organizerId: 'lest fairly',
 };
 
 export const sampleWithFullData: IGroup = {
   id: 32281,
   name: 'so',
-  meetup_group_name: 'offset',
+  organizerId: 'offset',
 };
 
 export const sampleWithNewData: NewGroup = {

@@ -21,7 +21,7 @@ describe('Group Form Service', () => {
           expect.objectContaining({
             id: expect.any(Object),
             name: expect.any(Object),
-            meetup_group_name: expect.any(Object),
+            organizerId: expect.any(Object),
           }),
         );
       });
@@ -33,7 +33,7 @@ describe('Group Form Service', () => {
           expect.objectContaining({
             id: expect.any(Object),
             name: expect.any(Object),
-            meetup_group_name: expect.any(Object),
+            organizerId: expect.any(Object),
           }),
         );
       });

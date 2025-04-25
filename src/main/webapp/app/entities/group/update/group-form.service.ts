@@ -19,9 +19,8 @@ type GroupFormDefaults = Pick<NewGroup, 'id'>;
 type GroupFormGroupContent = {
   id: FormControl<IGroup['id'] | NewGroup['id']>;
   name: FormControl<IGroup['name']>;
-  meetup_group_name: FormControl<IGroup['meetup_group_name']>;
+  organizerId: FormControl<IGroup['organizerId']>;
   eventSource: FormControl<IGroup['eventSource']>;
-  eventbriteOrganizerId: FormControl<IGroup['eventbriteOrganizerId']>;
 };
 
 export type GroupFormGroup = FormGroup<GroupFormGroupContent>;
@@ -42,23 +41,16 @@ export class GroupFormService {
         },
       ),
       name: new FormControl(groupRawValue.name),
-      meetup_group_name: new FormControl(groupRawValue.meetup_group_name),
+      organizerId: new FormControl(groupRawValue.organizerId),
       eventSource: new FormControl(groupRawValue.eventSource ?? 'MEET_UP', {
         nonNullable: true,
         validators: [Validators.required],
       }),
-      eventbriteOrganizerId: new FormControl(groupRawValue.eventbriteOrganizerId),
     });
   }
 
   getGroup(form: GroupFormGroup): IGroup | NewGroup {
-    const raw = form.getRawValue() as IGroup | NewGroup;
-    if (raw.eventSource === 'MEET_UP') {
-      raw.eventbriteOrganizerId = null;
-    } else if (raw.eventSource === 'EVENTBRITE') {
-      raw.meetup_group_name = null;
-    }
-    return raw;
+    return form.getRawValue() as IGroup | NewGroup;
   }
 
   resetForm(form: GroupFormGroup, group: GroupFormGroupInput): void {
@@ -70,12 +62,11 @@ export class GroupFormService {
     } as any);
   }
 
-  private getFormDefaults(): GroupFormDefaults & Pick<IGroup, 'eventSource' | 'meetup_group_name' | 'eventbriteOrganizerId'> {
+  private getFormDefaults(): GroupFormDefaults & Pick<IGroup, 'eventSource' | 'organizerId'> {
     return {
       id: null,
       eventSource: 'MEET_UP',
-      meetup_group_name: null,
-      eventbriteOrganizerId: null,
+      organizerId: null,
     };
   }
 }

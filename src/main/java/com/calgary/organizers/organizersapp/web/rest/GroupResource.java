@@ -74,25 +74,6 @@ public class GroupResource {
     }
 
     /**
-     * {@code POST  /groups} : Create a new group.
-     *
-     * @param group the group to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new group, or with status {@code 400 (Bad Request)} if the group has already an ID.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
-     */
-    @PostMapping("/eventbrite")
-    public ResponseEntity<Group> createEventbriteGroup(@RequestBody Group group) throws URISyntaxException {
-        LOG.debug("REST request to save Group : {}", group);
-        if (group.getId() != null) {
-            throw new BadRequestAlertException("A new group cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-        group = groupService.saveEventbrite(group);
-        return ResponseEntity.created(new URI("/api/groups/" + group.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, group.getId().toString()))
-            .body(group);
-    }
-
-    /**
      * {@code PUT  /groups/:id} : Updates an existing group.
      *
      * @param id the id of the group to save.

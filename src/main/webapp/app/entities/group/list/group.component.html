@@ -49,7 +49,7 @@
                 <fa-icon class="p-1" icon="sort"></fa-icon>
               </div>
             </th>
-            <th scope="col" jhiSortBy="meetup_group_name">
+            <th scope="col" jhiSortBy="organizerId">
               <div class="d-flex">
                 <span>Organizer id</span>
 
@@ -73,9 +73,7 @@
               <!-- <a [routerLink]="['/group', group.id, 'view']">{{ group.id }}</a> -->
               <!-- </td> -->
               <td>{{ group.name }}</td>
-              <td>
-                {{ group.eventSource === 'EVENTBRITE' ? group.eventbriteOrganizerId : group.meetup_group_name }}
-              </td>
+              <td>{{ group.organizerId }}</td>
               <td>
                 <button
                   class="btn"

@@ -2,11 +2,8 @@ package com.calgary.organizers.organizersapp.service;
 
 import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.domain.Group;
-import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.repository.GroupRepository;
-import com.calgary.organizers.organizersapp.service.eventsource.eventbrite.EventbriteService;
-import com.calgary.organizers.organizersapp.service.eventsource.meetup.MeetupService;
-import com.calgary.organizers.organizersapp.service.oauth.JwtFlowProvider;
+import com.calgary.organizers.organizersapp.service.eventsource.EventSourceServiceFactory;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -26,23 +23,13 @@ public class GroupService {
     private static final Logger LOG = LoggerFactory.getLogger(GroupService.class);
 
     private final GroupRepository groupRepository;
-    private final JwtFlowProvider jwtFlowProvider;
-    private final MeetupService meetupService;
-    private final EventbriteService eventbriteService;
     private final EventService eventService;
+    private final EventSourceServiceFactory eventSourceServiceFactory;
 
-    public GroupService(
-        GroupRepository groupRepository,
-        JwtFlowProvider jwtFlowProvider,
-        MeetupService meetupService,
-        EventbriteService eventbriteService,
-        EventService eventService
-    ) {
+    public GroupService(GroupRepository groupRepository, EventService eventService, EventSourceServiceFactory eventSourceServiceFactory) {
         this.groupRepository = groupRepository;
-        this.jwtFlowProvider = jwtFlowProvider;
-        this.meetupService = meetupService;
-        this.eventbriteService = eventbriteService;
         this.eventService = eventService;
+        this.eventSourceServiceFactory = eventSourceServiceFactory;
     }
 
     /**
@@ -54,26 +41,9 @@ public class GroupService {
     @Transactional
     public Group save(Group group) {
         LOG.debug("Request to save Group : {}", group);
-        group.setEventSource(EventSource.MEET_UP);
-        String accessToken = jwtFlowProvider.getAccessToken();
-        meetupService.verifyGroupParameters(group.getMeetup_group_name(), accessToken);
+        eventSourceServiceFactory.verifyOrganizerParameters(group);
         Group savedGroup = groupRepository.save(group);
-        meetupService.syncEventsForGroup(accessToken, savedGroup.getMeetup_group_name());
-        return savedGroup;
-    }
-
-    /**
-     * Save a group.
-     *
-     * @param group the entity to save.
-     * @return the persisted entity.
-     */
-    @Transactional
-    public Group saveEventbrite(Group group) {
-        LOG.debug("Request to save Group : {}", group);
-        group.setEventSource(EventSource.EVENTBRITE);
-        Group savedGroup = groupRepository.save(group);
-        eventbriteService.syncEventsForGroup(savedGroup.getEventbriteOrganizerId());
+        eventSourceServiceFactory.syncEventsForGroup(savedGroup);
         return savedGroup;
     }
 
@@ -103,8 +73,8 @@ public class GroupService {
                 if (group.getName() != null) {
                     existingGroup.setName(group.getName());
                 }
-                if (group.getMeetup_group_name() != null) {
-                    existingGroup.setMeetup_group_name(group.getMeetup_group_name());
+                if (group.getOrganizerId() != null) {
+                    existingGroup.setOrganizerId(group.getOrganizerId());
                 }
 
                 return existingGroup;
@@ -144,7 +114,7 @@ public class GroupService {
     public void delete(Long id) {
         LOG.debug("Request to delete Group : {}", id);
         Group group = groupRepository.findById(id).orElseThrow();
-        List<Event> eventsOfGroup = eventService.getDynamicEventsForGroup(group.getMeetup_group_name());
+        List<Event> eventsOfGroup = eventService.getEventsForOrganizerId(group.getOrganizerId());
         eventService.deleteEvents(eventsOfGroup);
         groupRepository.deleteById(id);
     }

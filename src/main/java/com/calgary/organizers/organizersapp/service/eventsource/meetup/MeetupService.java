@@ -1,8 +1,10 @@
 package com.calgary.organizers.organizersapp.service.eventsource.meetup;
 
 import com.calgary.organizers.organizersapp.domain.Event;
+import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.scheduled.EventEquator;
 import com.calgary.organizers.organizersapp.service.EventService;
+import com.calgary.organizers.organizersapp.service.eventsource.EventSourceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class MeetupService {
+public class MeetupService implements EventSourceService {
 
     private final RestTemplate restTemplate;
     private final EventService eventService;
@@ -37,9 +39,9 @@ public class MeetupService {
         this.eventService = eventService;
     }
 
-    public List<Event> fetchEvents(String accessToken, String groupUrlName) {
+    @Override
+    public List<Event> fetchEvents(String groupUrlName) {
         HttpHeaders graphqlHeaders = new HttpHeaders();
-        graphqlHeaders.set("Authorization", "Bearer " + accessToken);
         graphqlHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         // Create the GraphQL query
@@ -99,11 +101,12 @@ public class MeetupService {
                 event.setEventTitle(eventNode.get("title").asText());
                 event.setEvent_description(StringUtils.left(eventNode.get("description").asText(), 255));
                 event.setEvent_date(ZonedDateTime.parse(eventNode.get("dateTime").asText()));
-                event.setEventGroupName(groupUrlName);
+                event.setOrganizerId(groupUrlName);
                 event.setEvent_location(eventNode.at("/venue/address").asText());
                 event.setEvent_location(eventNode.at("/venue/address").asText());
                 event.setEventId(eventNode.get("id").asText());
                 event.setEventGroupDisplayName(rootNode.at("/data/groupByUrlname/name").asText());
+                event.setEventSource(EventSource.MEET_UP);
                 event.setDynamic(true);
                 eventsToSave.add(event);
             }
@@ -114,9 +117,10 @@ public class MeetupService {
     }
 
     @Transactional
-    public void syncEventsForGroup(String accessToken, String groupName) {
-        List<Event> oldEvents = eventService.getDynamicEventsForGroup(groupName);
-        List<Event> newEvents = fetchEvents(accessToken, groupName);
+    @Override
+    public void syncEventsForGroup(String groupName) {
+        List<Event> oldEvents = eventService.getEventsForOrganizerId(groupName);
+        List<Event> newEvents = fetchEvents(groupName);
         Map<String, Event> oldEventsMap = oldEvents.stream().collect(Collectors.toMap(Event::getEventId, Function.identity()));
         ZonedDateTime now = ZonedDateTime.now();
 
@@ -137,9 +141,14 @@ public class MeetupService {
         eventService.deleteEvents(eventsForRemove);
     }
 
-    public void verifyGroupParameters(String groupName, String accessToken) {
+    @Override
+    public EventSource getEventSource() {
+        return EventSource.MEET_UP;
+    }
+
+    @Override
+    public void verifyOrganizerParameters(String organizerId) {
         HttpHeaders graphqlHeaders = new HttpHeaders();
-        graphqlHeaders.set("Authorization", "Bearer " + accessToken);
         graphqlHeaders.setContentType(MediaType.APPLICATION_JSON);
         String graphqlQuery =
             "query GetEventsByGroup($groupUrlname: String!) { " +
@@ -159,7 +168,7 @@ public class MeetupService {
             "    }" +
             "  } " +
             "} ";
-        String variables = "{ " + "    \"groupUrlname\": \"" + groupName + "\" " + "  }";
+        String variables = "{ " + "    \"groupUrlname\": \"" + organizerId + "\" " + "  }";
         String restGraphqlQuery = "{ \"query\": \"" + graphqlQuery + "\", \"variables\": " + variables + "}";
         HttpEntity<String> graphqlRequest = new HttpEntity<>(restGraphqlQuery, graphqlHeaders);
 

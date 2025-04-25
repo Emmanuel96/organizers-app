@@ -1,7 +1,10 @@
 package com.calgary.organizers.organizersapp.domain;
 
+import com.calgary.organizers.organizersapp.enums.EventSource;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,8 +44,12 @@ public class Event implements Serializable {
     @Column(name = "event_id")
     private String eventId;
 
-    @Column(name = "event_group_name")
-    private String eventGroupName;
+    @Column(name = "organizer_id")
+    private String organizerId;
+
+    @Column(name = "event_source")
+    @Enumerated(EnumType.STRING)
+    private EventSource eventSource;
 
     @Column(name = "event_group_display_name")
     private String eventGroupDisplayName;
@@ -53,10 +60,15 @@ public class Event implements Serializable {
     @Column(name = "event_url")
     private String event_url;
 
-    @Column(name = "eventbrite_organizer_id")
-    private String eventbriteOrganizerId;
-
     // jhipster-needle-entity-add-field - JHipster will add fields here
+
+    public EventSource getEventSource() {
+        return eventSource;
+    }
+
+    public void setEventSource(EventSource eventSource) {
+        this.eventSource = eventSource;
+    }
 
     public Long getId() {
         return this.id;
@@ -155,20 +167,12 @@ public class Event implements Serializable {
         this.eventId = eventId;
     }
 
-    public String getEventGroupName() {
-        return eventGroupName;
+    public String getOrganizerId() {
+        return organizerId;
     }
 
-    public void setEventGroupName(String groupName) {
-        this.eventGroupName = groupName;
-    }
-
-    public String getEventbriteOrganizerId() {
-        return eventbriteOrganizerId;
-    }
-
-    public void setEventbriteOrganizerId(String eventbriteOrganizerId) {
-        this.eventbriteOrganizerId = eventbriteOrganizerId;
+    public void setOrganizerId(String groupName) {
+        this.organizerId = groupName;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
@@ -198,7 +202,7 @@ public class Event implements Serializable {
             ", event_date='" + getEvent_date() + "'" +
             ", event_location='" + getEvent_location() + "'" +
             ", event_description='" + getEvent_description() + "'" +
-            ", event_group_name='" + getEventGroupName() + "'" +
+            ", event_group_name='" + getOrganizerId() + "'" +
             "}";
     }
 }

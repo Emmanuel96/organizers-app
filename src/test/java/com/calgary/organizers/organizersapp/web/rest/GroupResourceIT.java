@@ -35,8 +35,8 @@ class GroupResourceIT {
     private static final String DEFAULT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_NAME = "BBBBBBBBBB";
 
-    private static final String DEFAULT_MEETUP_GROUP_NAME = "AAAAAAAAAA";
-    private static final String UPDATED_MEETUP_GROUP_NAME = "BBBBBBBBBB";
+    private static final String DEFAULT_ORGANIZER_ID = "AAAAAAAAAA";
+    private static final String UPDATED_ORGANIZER_ID = "BBBBBBBBBB";
 
     private static final String ENTITY_API_URL = "/api/groups";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
@@ -67,7 +67,7 @@ class GroupResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Group createEntity() {
-        return new Group().name(DEFAULT_NAME).meetup_group_name(DEFAULT_MEETUP_GROUP_NAME);
+        return new Group().name(DEFAULT_NAME).organizerId(DEFAULT_ORGANIZER_ID);
     }
 
     /**
@@ -77,7 +77,7 @@ class GroupResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Group createUpdatedEntity() {
-        return new Group().name(UPDATED_NAME).meetup_group_name(UPDATED_MEETUP_GROUP_NAME);
+        return new Group().name(UPDATED_NAME).organizerId(UPDATED_ORGANIZER_ID);
     }
 
     @BeforeEach
@@ -145,7 +145,7 @@ class GroupResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(group.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
-            .andExpect(jsonPath("$.[*].meetup_group_name").value(hasItem(DEFAULT_MEETUP_GROUP_NAME)));
+            .andExpect(jsonPath("$.[*].organizerId").value(hasItem(DEFAULT_ORGANIZER_ID)));
     }
 
     @Test
@@ -161,7 +161,7 @@ class GroupResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(group.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
-            .andExpect(jsonPath("$.meetup_group_name").value(DEFAULT_MEETUP_GROUP_NAME));
+            .andExpect(jsonPath("$.organizerId").value(DEFAULT_ORGANIZER_ID));
     }
 
     @Test
@@ -183,7 +183,7 @@ class GroupResourceIT {
         Group updatedGroup = groupRepository.findById(group.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedGroup are not directly saved in db
         em.detach(updatedGroup);
-        updatedGroup.name(UPDATED_NAME).meetup_group_name(UPDATED_MEETUP_GROUP_NAME);
+        updatedGroup.name(UPDATED_NAME).organizerId(UPDATED_ORGANIZER_ID);
 
         restGroupMockMvc
             .perform(
@@ -287,7 +287,7 @@ class GroupResourceIT {
         Group partialUpdatedGroup = new Group();
         partialUpdatedGroup.setId(group.getId());
 
-        partialUpdatedGroup.name(UPDATED_NAME).meetup_group_name(UPDATED_MEETUP_GROUP_NAME);
+        partialUpdatedGroup.name(UPDATED_NAME).organizerId(UPDATED_ORGANIZER_ID);
 
         restGroupMockMvc
             .perform(
