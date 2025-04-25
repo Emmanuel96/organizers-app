@@ -1,7 +1,6 @@
 package com.calgary.organizers.organizersapp.service.eventsource.eventbrite;
 
 import com.calgary.organizers.organizersapp.domain.Event;
-import com.calgary.organizers.organizersapp.scheduled.EventEquator;
 import com.calgary.organizers.organizersapp.service.EventService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,11 +17,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Equator;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class EventbriteService {
@@ -36,58 +35,86 @@ public class EventbriteService {
     }
 
     public List<Event> fetchEvents(String eventbriteOrganizerId) {
-        // Eventbrite endpoint which returns a JSON response
-        final String url = "https://www.eventbrite.ca/org/" + eventbriteOrganizerId + "/showmore/?page_size=100&type=future";
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        List<Event> results = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                JsonNode rootNode = objectMapper.readTree(response.getBody());
-                // Navigate to the events array in the JSON response
-                JsonNode eventsArray = rootNode.path("data").path("events");
-                List<Event> events = new ArrayList<>();
+        //For this endpoint eventbrite has max page size 30. We fetch first page.
+        String idOnlyUrl = "https://www.eventbrite.ca/org/" + eventbriteOrganizerId + "/showmore/?page_size=30&type=future";
 
-                // Iterate over each event node in the events array
-                for (JsonNode eventNode : eventsArray) {
-                    Event event = new Event();
-
-                    event.setEventbriteOrganizerId(eventNode.get("organizer").get("id").asText());
-                    event.setEventGroupDisplayName(eventNode.get("organizer").get("name").asText());
-                    event.setEventId(eventNode.get("id").asText());
-                    event.setEventTitle(eventNode.get("name").get("text").asText());
-                    event.setEvent_description(StringUtils.left(eventNode.get("description").get("text").asText(), 255));
-                    event.setEvent_url(eventNode.get("url").asText());
-                    event.setDynamic(true);
-
-                    // Parse and set the event date from the "start.utc" field
-                    if (eventNode.has("start") && eventNode.get("start").has("utc")) {
-                        try {
-                            ZonedDateTime eventDate = ZonedDateTime.parse(eventNode.get("start").get("utc").asText());
-                            event.setEvent_date(eventDate);
-                        } catch (DateTimeParseException e) {
-                            // Log or handle the parsing error if necessary
-                            System.err.println("Error parsing event date for event id " + event.getEventId() + ": " + e.getMessage());
-                        }
-                    }
-
-                    // Set the event location from the venue's address, if available
-                    if (eventNode.has("venue")) {
-                        JsonNode venueNode = eventNode.get("venue");
-                        if (venueNode.has("address") && venueNode.get("address").has("localized_address_display")) {
-                            event.setEvent_location(venueNode.get("address").get("localized_address_display").asText());
-                        }
-                    }
-
-                    events.add(event);
-                }
-                return events;
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Error processing JSON response: " + e.getMessage(), e);
-            }
-        } else {
-            throw new RuntimeException("Failed request with code: " + response.getStatusCode());
+        ResponseEntity<String> idResponse = restTemplate.getForEntity(idOnlyUrl, String.class);
+        if (!idResponse.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Failed to fetch showmore events: " + idResponse.getStatusCode());
         }
+
+        List<String> seriesEventIds;
+        try {
+            JsonNode root = objectMapper.readTree(idResponse.getBody());
+            JsonNode eventsArray = root.path("data").path("events");
+            seriesEventIds = new ArrayList<>();
+            for (JsonNode e : eventsArray) {
+                if (e.get("is_series_parent").asBoolean()) {
+                    seriesEventIds.add(e.get("id").asText());
+                } else {
+                    Event ev = new Event();
+                    ev.setEventbriteOrganizerId(e.path("organizer").path("id").asText());
+                    ev.setEventGroupDisplayName(e.path("organizer").path("name").asText());
+                    ev.setEventId(e.path("id").asText());
+                    ev.setEventTitle(e.path("name").path("text").asText());
+                    ev.setEvent_url(e.path("url").asText());
+                    ev.setEvent_description(StringUtils.left(e.path("summary").asText(), 255));
+                    ev.setEvent_date(ZonedDateTime.parse(e.path("start").path("utc").asText()));
+                    ev.setEvent_location(e.path("primary_venue_id").asText(null));
+                    ev.setDynamic(true);
+                    results.add(ev);
+                }
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error parsing event IDs JSON", e);
+        }
+
+        if (!seriesEventIds.isEmpty()) {
+            // 2) Second request: fetch detailed info for all those IDs in one batch
+            String idsParam = String.join(",", seriesEventIds);
+            String detailUrl = UriComponentsBuilder.fromHttpUrl("https://www.eventbrite.com/api/v3/destination/events/")
+                .queryParam("event_ids", idsParam)
+                .queryParam("expand", "series,primary_organizer")
+                .queryParam("page_size", 50)
+                .queryParam("include_parent_events", true)
+                .toUriString();
+
+            ResponseEntity<String> detailResponse = restTemplate.getForEntity(detailUrl, String.class);
+            if (!detailResponse.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to fetch event details: " + detailResponse.getStatusCode());
+            }
+
+            // 3) Map the detailed JSON into your Event objects
+            try {
+                JsonNode root = objectMapper.readTree(detailResponse.getBody());
+                JsonNode detailedEvents = root.path("events");
+                for (JsonNode node : detailedEvents) {
+                    //It is a parent event of series. It has start and end dates of series, not event
+                    List<Event> evs = new ArrayList<>();
+                    for (JsonNode seriesNode : node.get("series").get("next_dates")) {
+                        Event ev = new Event();
+                        //TODO: get this data from Group entity
+                        ev.setEventbriteOrganizerId(node.path("primary_organizer_id").asText());
+                        ev.setEventGroupDisplayName(node.path("primary_organizer").path("name").asText());
+                        ev.setEventId(seriesNode.path("id").asText());
+                        ev.setEventTitle(node.path("name").asText());
+                        ev.setEvent_url(node.path("url").asText().replace(node.get("id").asText(), seriesNode.get("id").asText()));
+                        ev.setEvent_description(StringUtils.left(node.path("summary").asText(), 255));
+                        ev.setEvent_date(ZonedDateTime.parse(seriesNode.path("start").asText()));
+                        ev.setEvent_location(node.path("primary_venue_id").asText(null));
+                        ev.setDynamic(true);
+                        evs.add(ev);
+                    }
+                    results.addAll(evs);
+                }
+            } catch (JsonProcessingException | DateTimeParseException e) {
+                throw new RuntimeException("Error parsing detailed events JSON", e);
+            }
+        }
+        return results;
     }
 
     @Transactional

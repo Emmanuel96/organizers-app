@@ -223,7 +223,8 @@ public class EventResource {
 
         return events
             .stream()
-            .filter(event -> event.getEventGroupName() == null || !excludedGroupNames.contains(event.getEventGroupName()))
+            //TODO: implement logic for filtering eventbrite events
+            .filter(event -> !excludedGroupNames.contains(event.getEventGroupName()))
             .collect(Collectors.toList());
     }
 
