@@ -17,6 +17,8 @@
     <include file="config/liquibase/changelog/20250222_add_user_excluded_groups.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20250412131000_added_url_and_title_to_event.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20250412145000_renamed_group_name_to_event_group_display_name.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20250414145000_added_event_source_column.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20250425145000_merge_eventbrite_and_meetup_organizer_column.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->

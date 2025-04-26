@@ -56,7 +56,7 @@ public class EventAsserts {
             )
             .satisfies(e -> assertThat(e.getEvent_location()).as("check event_location").isEqualTo(actual.getEvent_location()))
             .satisfies(e -> assertThat(e.getEvent_description()).as("check event_description").isEqualTo(actual.getEvent_description()))
-            .satisfies(e -> assertThat(e.getEventGroupName()).as("check event_group_name").isEqualTo(actual.getEventGroupName()));
+            .satisfies(e -> assertThat(e.getOrganizerId()).as("check event_group_name").isEqualTo(actual.getOrganizerId()));
     }
 
     /**

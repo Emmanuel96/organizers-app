@@ -90,7 +90,8 @@ export default class HomeComponent implements OnInit, OnDestroy {
       this.eventDate = this.convertToMountainTime(event.event_date);
       this.eventLocation = event.event_location ? event.event_location : 'Online Event';
       this.eventGroup = event.eventGroupDisplayName;
-      this.eventTitle = event.event_group_name;
+      this.eventUrl = event.event_url;
+      this.eventTitle = event.title;
     }
 
     this.openModal();
@@ -245,16 +246,25 @@ export default class HomeComponent implements OnInit, OnDestroy {
       .subscribe(events => {
         this.events = events.body ?? [];
         this.calendarOptions.events = events.body?.map(value => {
+          // Determine event source and assign a color
+          let eventColor = '#3788d8'; // default color
+          if (value.eventSource === 'EVENTBRITE') {
+            eventColor = '#B07DA7';
+          } else if (value.eventSource === 'MEET_UP') {
+            eventColor = '#7294CD';
+          }
           return {
             id: value.id.toString(),
-            date: value.event_date?.format('YYYY-MM-DD').toString(),
-            title: value.event_description ?? '',
-            groupName: value.event_group_name,
+            // Ensure that event_date is formatted correctly
+            date: value.event_date ? value.event_date.format('YYYY-MM-DD').toString() : '',
+            title: value.eventTitle ?? '',
+            groupName: value.organizerId,
             event_url: value.event_url,
             event_group_display_name: value.eventGroupDisplayName,
+            backgroundColor: eventColor,
+            borderColor: eventColor,
           };
         });
-
         this.groupEventsByMonth();
       });
   }

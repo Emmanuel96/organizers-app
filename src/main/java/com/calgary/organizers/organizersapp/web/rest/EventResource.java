@@ -6,11 +6,9 @@ import com.calgary.organizers.organizersapp.domain.User;
 import com.calgary.organizers.organizersapp.repository.EventRepository;
 import com.calgary.organizers.organizersapp.repository.UserRepository;
 import com.calgary.organizers.organizersapp.service.EventService;
-import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
+import com.calgary.organizers.organizersapp.service.eventsource.meetup.MeetupService;
 import com.calgary.organizers.organizersapp.service.oauth.ServerFlowProvider;
 import com.calgary.organizers.organizersapp.web.rest.errors.BadRequestAlertException;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,13 +20,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties.Authentication;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -104,7 +97,7 @@ public class EventResource {
         // Step 1: Exchange code for access token
         String accessToken = serverFlowProvider.getAccessToken(code);
         // Step 2: Fetch events using the GraphQL API with the access token
-        List<Event> meetupEvents = meetupService.fetchEvents(accessToken, groupUrlName);
+        List<Event> meetupEvents = meetupService.fetchEvents(groupUrlName);
         // Save all events to the database
         eventService.saveEvents(meetupEvents);
         return ResponseEntity.ok("Events fetched and saved successfully.");
@@ -179,8 +172,8 @@ public class EventResource {
                 if (event.getEvent_description() != null) {
                     existingEvent.setEvent_description(event.getEvent_description());
                 }
-                if (event.getEventGroupName() != null) {
-                    existingEvent.setEventGroupName(event.getEventGroupName());
+                if (event.getOrganizerId() != null) {
+                    existingEvent.setOrganizerId(event.getOrganizerId());
                 }
 
                 return existingEvent;
@@ -213,18 +206,11 @@ public class EventResource {
         String currentUserLogin = authentication.getName();
         User currentUser = userRepository.findOneByLogin(currentUserLogin).orElseThrow();
 
-        Set<String> excludedGroupNames = currentUser
-            .getExcludedGroups()
-            .stream()
-            .map(Group::getMeetup_group_name)
-            .collect(Collectors.toSet());
+        Set<String> excludedOrganizerIds = currentUser.getExcludedGroups().stream().map(Group::getOrganizerId).collect(Collectors.toSet());
 
         List<Event> events = eventRepository.findAll();
 
-        return events
-            .stream()
-            .filter(event -> event.getEventGroupName() == null || !excludedGroupNames.contains(event.getEventGroupName()))
-            .collect(Collectors.toList());
+        return events.stream().filter(event -> !excludedOrganizerIds.contains(event.getOrganizerId())).toList();
     }
 
     /**

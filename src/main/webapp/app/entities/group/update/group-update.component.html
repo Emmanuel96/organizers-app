@@ -19,15 +19,50 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" for="field_meetup_group_name">Meetup Group Name</label>
+          <label class="form-label" for="field_eventSource">Event Source</label>
+          <select class="form-control" id="field_eventSource" name="eventSource" data-cy="eventSource" formControlName="eventSource">
+            <option value="MEET_UP">Meetup</option>
+            <option value="EVENTBRITE">Eventbrite</option>
+          </select>
+        </div>
+
+        <div class="mb-3" *ngIf="editForm.get('eventSource')?.value === 'MEET_UP'">
+          <label class="form-label" for="field_organizerId">Meetup Group Name</label>
           <input
             type="text"
             class="form-control"
-            name="meetup_group_name"
-            id="field_meetup_group_name"
-            data-cy="meetup_group_name"
-            formControlName="meetup_group_name"
+            name="organizerId"
+            id="field_organizerId"
+            data-cy="organizerId"
+            formControlName="organizerId"
           />
+        </div>
+
+        <div class="mb-3" *ngIf="editForm.get('eventSource')?.value === 'EVENTBRITE'">
+          <label class="form-label" for="field_eventbriteOrganizerId">Eventbrite Organizer ID</label>
+          <input
+            type="text"
+            class="form-control"
+            name="organizerId"
+            id="field_eventbriteOrganizerId"
+            data-cy="organizerId"
+            formControlName="organizerId"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_eventSourceUrl">Event Source URL</label>
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              name="eventSourceUrl"
+              id="field_eventSourceUrl"
+              data-cy="eventSourceUrl"
+              formControlName="eventSourceUrl"
+            />
+            <button type="button" class="btn btn-outline-primary" (click)="checkEventSourceUrl()">Check URL</button>
+          </div>
         </div>
       </div>
 

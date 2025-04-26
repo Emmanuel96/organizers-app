@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <changeSet id="add-organizer-id-column" author="Petro Zinchenko">
+    <addColumn tableName="jhi_group">
+      <column name="organizer_id" type="varchar(255)"/>
+    </addColumn>
+
+    <update tableName="jhi_group">
+      <column name="organizer_id" valueComputed="CASE
+            WHEN event_source = 'MEET_UP' THEN meetup_group_name
+            WHEN event_source = 'EVENTBRITE' THEN eventbrite_organizer_id
+            ELSE NULL
+        END"/>
+      <where>event_source IS NOT NULL</where>
+    </update>
+
+    <dropColumn tableName="jhi_group" columnName="meetup_group_name"/>
+    <dropColumn tableName="jhi_group" columnName="eventbrite_organizer_id"/>
+  </changeSet>
+
+  <changeSet id="add-organizer-id-to-event" author="your-name">
+    <addColumn tableName="event">
+      <column name="organizer_id" type="varchar(255)"/>
+    </addColumn>
+
+    <update tableName="event">
+      <column name="organizer_id"
+              valueComputed="CASE
+                    WHEN event_group_name IS NOT NULL THEN event_group_name
+                    ELSE eventbrite_organizer_id
+                END"/>
+      <where>event_group_name IS NOT NULL OR eventbrite_organizer_id IS NOT NULL</where>
+    </update>
+
+    <dropColumn tableName="event" columnName="event_group_name"/>
+    <dropColumn tableName="event" columnName="eventbrite_organizer_id"/>
+  </changeSet>
+  <changeSet id="add-event-source-column-to-event-table" author="petrozinchenko">
+    <addColumn tableName="event">
+      <column name="event_source" type="VARCHAR(255)" defaultValue="MEET_UP">
+        <constraints nullable="true"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+</databaseChangeLog>

@@ -2,9 +2,11 @@ package com.calgary.organizers.organizersapp.service;
 
 import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.domain.Group;
+import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.repository.GroupRepository;
-import com.calgary.organizers.organizersapp.service.eventsource.MeetupService;
-import com.calgary.organizers.organizersapp.service.oauth.JwtFlowProvider;
+import com.calgary.organizers.organizersapp.service.eventsource.EventSourceServiceFactory;
+import com.calgary.organizers.organizersapp.web.rest.dto.CheckUrlDto;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -24,20 +26,13 @@ public class GroupService {
     private static final Logger LOG = LoggerFactory.getLogger(GroupService.class);
 
     private final GroupRepository groupRepository;
-    private final JwtFlowProvider jwtFlowProvider;
-    private final MeetupService meetupService;
     private final EventService eventService;
+    private final EventSourceServiceFactory eventSourceServiceFactory;
 
-    public GroupService(
-        GroupRepository groupRepository,
-        JwtFlowProvider jwtFlowProvider,
-        MeetupService meetupService,
-        EventService eventService
-    ) {
+    public GroupService(GroupRepository groupRepository, EventService eventService, EventSourceServiceFactory eventSourceServiceFactory) {
         this.groupRepository = groupRepository;
-        this.jwtFlowProvider = jwtFlowProvider;
-        this.meetupService = meetupService;
         this.eventService = eventService;
+        this.eventSourceServiceFactory = eventSourceServiceFactory;
     }
 
     /**
@@ -49,10 +44,9 @@ public class GroupService {
     @Transactional
     public Group save(Group group) {
         LOG.debug("Request to save Group : {}", group);
-        String accessToken = jwtFlowProvider.getAccessToken();
-        meetupService.verifyGroupParameters(group.getMeetup_group_name(), accessToken);
+        eventSourceServiceFactory.verifyOrganizerParameters(group);
         Group savedGroup = groupRepository.save(group);
-        meetupService.syncEventsForGroup(accessToken, savedGroup.getMeetup_group_name());
+        eventSourceServiceFactory.syncEventsForGroup(savedGroup);
         return savedGroup;
     }
 
@@ -82,8 +76,8 @@ public class GroupService {
                 if (group.getName() != null) {
                     existingGroup.setName(group.getName());
                 }
-                if (group.getMeetup_group_name() != null) {
-                    existingGroup.setMeetup_group_name(group.getMeetup_group_name());
+                if (group.getOrganizerId() != null) {
+                    existingGroup.setOrganizerId(group.getOrganizerId());
                 }
 
                 return existingGroup;
@@ -123,8 +117,16 @@ public class GroupService {
     public void delete(Long id) {
         LOG.debug("Request to delete Group : {}", id);
         Group group = groupRepository.findById(id).orElseThrow();
-        List<Event> eventsOfGroup = eventService.getDynamicEventsForGroup(group.getMeetup_group_name());
+        List<Event> eventsOfGroup = eventService.getEventsForOrganizerId(group.getOrganizerId());
         eventService.deleteEvents(eventsOfGroup);
         groupRepository.deleteById(id);
+    }
+
+    public Group checkGroup(CheckUrlDto checkUrlDto) {
+        URI uri = URI.create(checkUrlDto.url());
+        String host = uri.getHost().toLowerCase();
+        EventSource eventSource = EventSource.fromString(host);
+        String organizerId = eventSourceServiceFactory.getOrganizerIdByUrl(eventSource, checkUrlDto.url());
+        return eventSourceServiceFactory.getOrganizerByOrganizerId(eventSource, organizerId);
     }
 }

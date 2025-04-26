@@ -1,4 +1,4 @@
-package com.calgary.organizers.organizersapp.service.eventsource;
+package com.calgary.organizers.organizersapp.service.eventsource.meetup;
 
 public class GraphQLException extends RuntimeException {
 

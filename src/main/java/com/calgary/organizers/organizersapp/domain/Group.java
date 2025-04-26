@@ -1,6 +1,16 @@
 package com.calgary.organizers.organizersapp.domain;
 
-import jakarta.persistence.*;
+import com.calgary.organizers.organizersapp.enums.EventSource;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -22,8 +32,13 @@ public class Group implements Serializable {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "meetup_group_name")
-    private String meetup_group_name;
+    @Column(name = "organizer_id")
+    private String organizerId;
+
+    @Column(name = "event_source")
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    private EventSource eventSource;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -53,20 +68,28 @@ public class Group implements Serializable {
         this.name = name;
     }
 
-    public String getMeetup_group_name() {
-        return this.meetup_group_name;
+    public String getOrganizerId() {
+        return this.organizerId;
     }
 
-    public Group meetup_group_name(String meetup_group_name) {
-        this.setMeetup_group_name(meetup_group_name);
+    public Group organizerId(String organizerId) {
+        this.setOrganizerId(organizerId);
         return this;
     }
 
-    public void setMeetup_group_name(String meetup_group_name) {
-        this.meetup_group_name = meetup_group_name;
+    public void setOrganizerId(String organizerId) {
+        this.organizerId = organizerId;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+
+    public EventSource getEventSource() {
+        return eventSource;
+    }
+
+    public void setEventSource(EventSource eventSource) {
+        this.eventSource = eventSource;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -91,7 +114,7 @@ public class Group implements Serializable {
         return "Group{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
-            ", meetup_group_name='" + getMeetup_group_name() + "'" +
+            ", organizerId='" + getOrganizerId() + "'" +
             "}";
     }
 }

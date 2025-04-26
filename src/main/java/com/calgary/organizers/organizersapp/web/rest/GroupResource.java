@@ -5,6 +5,7 @@ import com.calgary.organizers.organizersapp.domain.User;
 import com.calgary.organizers.organizersapp.repository.GroupRepository;
 import com.calgary.organizers.organizersapp.repository.UserRepository;
 import com.calgary.organizers.organizersapp.service.GroupService;
+import com.calgary.organizers.organizersapp.web.rest.dto.CheckUrlDto;
 import com.calgary.organizers.organizersapp.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
@@ -71,6 +80,13 @@ public class GroupResource {
         return ResponseEntity.created(new URI("/api/groups/" + group.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, group.getId().toString()))
             .body(group);
+    }
+
+    @PostMapping("/check")
+    public ResponseEntity<Group> createGroup(@RequestBody CheckUrlDto checkUrlDto) {
+        LOG.debug("REST request to check Group : {}", checkUrlDto);
+        Group group = groupService.checkGroup(checkUrlDto);
+        return ResponseEntity.ok(group);
     }
 
     /**

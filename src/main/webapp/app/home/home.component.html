@@ -26,7 +26,13 @@
         </ng-container>
         <div class="d-flex align-items-center mb-3" (click)="handleMobileEvent(event)">
           <div class="me-3">
-            <div class="date-box text-center bg-dark text-white rounded">
+            <div
+              class="date-box text-center text-white rounded"
+              [ngStyle]="{
+                'background-color':
+                  event.eventSource === 'EVENTBRITE' ? '#64B5F6' : event.eventSource === 'MEET_UP' ? '#81C784' : '#F3C4B6',
+              }"
+            >
               <div>{{ event.event_date | date: 'MMM' }}</div>
               <div>{{ event.event_date | date: 'd' }}</div>
             </div>

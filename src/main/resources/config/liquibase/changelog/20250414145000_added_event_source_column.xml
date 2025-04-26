@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <changeSet id="add-event-fields-to-jhi-group" author="petrozinchenko">
+    <addColumn tableName="jhi_group">
+      <column name="event_source" type="VARCHAR(255)" defaultValue="MEET_UP">
+        <constraints nullable="true"/>
+      </column>
+      <column name="eventbrite_organizer_id" type="VARCHAR(255)">
+        <constraints nullable="true"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet id="add-eventbrite-organizer-id-to-event" author="petrozinchenko">
+    <addColumn tableName="event">
+      <column name="eventbrite_organizer_id" type="VARCHAR(255)">
+        <constraints nullable="true"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+</databaseChangeLog>

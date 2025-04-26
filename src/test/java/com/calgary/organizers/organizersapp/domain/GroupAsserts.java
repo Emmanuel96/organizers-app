@@ -48,7 +48,7 @@ public class GroupAsserts {
         assertThat(expected)
             .as("Verify Group relevant properties")
             .satisfies(e -> assertThat(e.getName()).as("check name").isEqualTo(actual.getName()))
-            .satisfies(e -> assertThat(e.getMeetup_group_name()).as("check meetup_group_name").isEqualTo(actual.getMeetup_group_name()));
+            .satisfies(e -> assertThat(e.getOrganizerId()).as("check organizerId").isEqualTo(actual.getOrganizerId()));
     }
 
     /**

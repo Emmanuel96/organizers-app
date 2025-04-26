@@ -82,7 +82,7 @@
               <td>{{ event.event_date | formatMediumDatetime }}</td>
               <td>{{ event.event_location }}</td>
               <td>{{ event.event_description }}</td>
-              <td>{{ event.event_group_name }}</td>
+              <td>{{ event.organizerId }}</td>
               <td class="text-end" *jhiHasAnyAuthority="'ROLE_ADMIN'">
                 <div class="btn-group">
                   <a [routerLink]="['/event', event.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">

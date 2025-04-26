@@ -19,7 +19,9 @@ type GroupFormDefaults = Pick<NewGroup, 'id'>;
 type GroupFormGroupContent = {
   id: FormControl<IGroup['id'] | NewGroup['id']>;
   name: FormControl<IGroup['name']>;
-  meetup_group_name: FormControl<IGroup['meetup_group_name']>;
+  organizerId: FormControl<IGroup['organizerId']>;
+  eventSource: FormControl<IGroup['eventSource']>;
+  eventSourceUrl: FormControl<IGroup['eventSourceUrl']>;
 };
 
 export type GroupFormGroup = FormGroup<GroupFormGroupContent>;
@@ -40,7 +42,14 @@ export class GroupFormService {
         },
       ),
       name: new FormControl(groupRawValue.name),
-      meetup_group_name: new FormControl(groupRawValue.meetup_group_name),
+      organizerId: new FormControl(groupRawValue.organizerId),
+      eventSource: new FormControl(groupRawValue.eventSource ?? 'MEET_UP', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      eventSourceUrl: new FormControl(groupRawValue.eventSourceUrl, {
+        validators: [],
+      }),
     });
   }
 
@@ -50,17 +59,19 @@ export class GroupFormService {
 
   resetForm(form: GroupFormGroup, group: GroupFormGroupInput): void {
     const groupRawValue = { ...this.getFormDefaults(), ...group };
-    form.reset(
-      {
-        ...groupRawValue,
-        id: { value: groupRawValue.id, disabled: true },
-      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */,
-    );
+    form.reset({
+      ...groupRawValue,
+      id: { value: groupRawValue.id, disabled: true },
+      eventSource: groupRawValue.eventSource ?? 'MEET_UP',
+      eventSourceUrl: groupRawValue.eventSourceUrl,
+    } as any);
   }
 
-  private getFormDefaults(): GroupFormDefaults {
+  private getFormDefaults(): GroupFormDefaults & Pick<IGroup, 'eventSource' | 'organizerId'> {
     return {
       id: null,
+      eventSource: 'MEET_UP',
+      organizerId: null,
     };
   }
 }
