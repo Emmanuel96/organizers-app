@@ -21,6 +21,7 @@ type GroupFormGroupContent = {
   name: FormControl<IGroup['name']>;
   organizerId: FormControl<IGroup['organizerId']>;
   eventSource: FormControl<IGroup['eventSource']>;
+  eventSourceUrl: FormControl<IGroup['eventSourceUrl']>;
 };
 
 export type GroupFormGroup = FormGroup<GroupFormGroupContent>;
@@ -46,6 +47,9 @@ export class GroupFormService {
         nonNullable: true,
         validators: [Validators.required],
       }),
+      eventSourceUrl: new FormControl(groupRawValue.eventSourceUrl, {
+        validators: [],
+      }),
     });
   }
 
@@ -59,6 +63,7 @@ export class GroupFormService {
       ...groupRawValue,
       id: { value: groupRawValue.id, disabled: true },
       eventSource: groupRawValue.eventSource ?? 'MEET_UP',
+      eventSourceUrl: groupRawValue.eventSourceUrl,
     } as any);
   }
 

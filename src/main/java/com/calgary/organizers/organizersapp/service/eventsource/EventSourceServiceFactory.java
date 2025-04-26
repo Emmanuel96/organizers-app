@@ -25,4 +25,12 @@ public class EventSourceServiceFactory {
     public void verifyOrganizerParameters(Group group) {
         eventSourceServiceMap.get(group.getEventSource()).verifyOrganizerParameters(group.getOrganizerId());
     }
+
+    public String getOrganizerIdByUrl(EventSource eventSource, String url) {
+        return eventSourceServiceMap.get(eventSource).getOrganizerIdByUrl(url);
+    }
+
+    public Group getOrganizerByOrganizerId(EventSource eventSource, String organizerId) {
+        return eventSourceServiceMap.get(eventSource).getOrganizerByOrganizerId(organizerId);
+    }
 }

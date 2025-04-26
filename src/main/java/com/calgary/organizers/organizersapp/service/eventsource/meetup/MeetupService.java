@@ -1,6 +1,7 @@
 package com.calgary.organizers.organizersapp.service.eventsource.meetup;
 
 import com.calgary.organizers.organizersapp.domain.Event;
+import com.calgary.organizers.organizersapp.domain.Group;
 import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.scheduled.EventEquator;
 import com.calgary.organizers.organizersapp.service.EventService;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
@@ -32,11 +35,13 @@ public class MeetupService implements EventSourceService {
 
     private final RestTemplate restTemplate;
     private final EventService eventService;
+    private final ObjectMapper objectMapper;
     private static final String MEETUP_GRAPHQL_API_URL = "https://api.meetup.com/gql";
 
-    public MeetupService(RestTemplate restTemplate, EventService eventService) {
+    public MeetupService(RestTemplate restTemplate, EventService eventService, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         this.eventService = eventService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -84,7 +89,6 @@ public class MeetupService implements EventSourceService {
 
         if (graphqlResponse.getStatusCode() == HttpStatus.OK) {
             // Parse the response to extract event data
-            ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = null;
             try {
                 rootNode = objectMapper.readTree(graphqlResponse.getBody());
@@ -199,5 +203,62 @@ public class MeetupService implements EventSourceService {
         } else {
             throw new GraphQLException("Failed GraphQL request with code : %s".formatted(graphqlResponse.getStatusCode().toString()));
         }
+    }
+
+    @Override
+    public String getOrganizerIdByUrl(String url) {
+        Pattern p = Pattern.compile("https?://(?:www\\.)?meetup\\.com/([^/]+)/events/");
+        Matcher m = p.matcher(url);
+        if (m.find()) {
+            String groupSlug = m.group(1);
+            System.out.println(groupSlug); // prints "pxandpints"
+            return groupSlug;
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
+    @Override
+    public Group getOrganizerByOrganizerId(String organizerId) {
+        HttpHeaders graphqlHeaders = new HttpHeaders();
+        graphqlHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        // Create the GraphQL query
+        String graphqlQuery =
+            "{ \"query\": \"query ($groupUrlname: String!) { " +
+            "  groupByUrlname(urlname: $groupUrlname) { " +
+            "    name " +
+            "  } " +
+            "}\", " +
+            "\"variables\": { " +
+            "  \"groupUrlname\": \"" +
+            organizerId +
+            "\", " +
+            "  \"input\": { \"first\": 10 } " +
+            "} }";
+
+        HttpEntity<String> graphqlRequest = new HttpEntity<>(graphqlQuery, graphqlHeaders);
+
+        ResponseEntity<String> graphqlResponse = restTemplate.exchange(
+            MEETUP_GRAPHQL_API_URL,
+            HttpMethod.POST,
+            graphqlRequest,
+            String.class
+        );
+
+        if (graphqlResponse.getStatusCode() != HttpStatus.OK) {
+            throw new RuntimeException("Request for organizer with id " + organizerId + " failed");
+        }
+        JsonNode rootNode = null;
+        try {
+            rootNode = objectMapper.readTree(graphqlResponse.getBody());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        Group group = new Group();
+        group.setEventSource(EventSource.MEET_UP);
+        group.setName(rootNode.at("/data/groupByUrlname/name").asText());
+        group.setOrganizerId(organizerId);
+        return group;
     }
 }

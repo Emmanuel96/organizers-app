@@ -49,6 +49,21 @@
             formControlName="organizerId"
           />
         </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_eventSourceUrl">Event Source URL</label>
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              name="eventSourceUrl"
+              id="field_eventSourceUrl"
+              data-cy="eventSourceUrl"
+              formControlName="eventSourceUrl"
+            />
+            <button type="button" class="btn btn-outline-primary" (click)="checkEventSourceUrl()">Check URL</button>
+          </div>
+        </div>
       </div>
 
       <div>

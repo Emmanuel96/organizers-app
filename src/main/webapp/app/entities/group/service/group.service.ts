@@ -82,4 +82,8 @@ export class GroupService {
     const url = `${this.resourceUrl}/${id}/toggle-exclude?excluded=${excluded}`;
     return this.http.put<IGroup[]>(url, {}, { observe: 'response' });
   }
+
+  checkUrl(url: string): Observable<IGroup> {
+    return this.http.post<IGroup>(`${this.resourceUrl}/check`, { url });
+  }
 }
