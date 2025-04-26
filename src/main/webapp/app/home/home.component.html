@@ -14,7 +14,7 @@
   <div class="mobile-only">
     <!-- <h5 class="text-black">All Events</h5> -->
     <div *ngFor="let group of groupedEvents" style="margin-bottom: 50px">
-      <h3 class="text-black fw-bold">{{ group.month }}</h3>
+      <h3 class="text-black fw-bold">{{ group.month }}, 2025</h3>
 
       <div *ngFor="let event of group.events; let i = index" (click)="handleMobileEvent(event)">
         <ng-container *ngIf="i === 0 || !isSameDay(event.event_date, group.events[i - 1].event_date)">
@@ -30,7 +30,7 @@
               class="date-box text-center text-white rounded"
               [ngStyle]="{
                 'background-color':
-                  event.eventSource === 'EVENTBRITE' ? '#64B5F6' : event.eventSource === 'MEET_UP' ? '#81C784' : '#F3C4B6',
+                  event.eventSource === 'EVENTBRITE' ? '#051F7C' : event.eventSource === 'MEET_UP' ? '#396000' : '#F3C4B6',
               }"
             >
               <div>{{ event.event_date | date: 'MMM' }}</div>
