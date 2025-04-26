@@ -202,7 +202,7 @@ public class EventbriteService implements EventSourceService {
             String groupSlug = m.group(1);
             return groupSlug;
         } else {
-            throw new RuntimeException();
+            throw new RuntimeException("Invalid URL");
         }
     }
 
