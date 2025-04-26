@@ -67,10 +67,16 @@ public class EventbriteService implements EventSourceService {
                     ev.setEvent_url(e.path("url").asText());
                     ev.setEvent_description(StringUtils.left(e.path("summary").asText(), 255));
                     ev.setEvent_date(ZonedDateTime.parse(e.path("start").path("utc").asText()));
-                    ev.setEvent_location(e.path("primary_venue_id").asText(null));
+                    ev.setEvent_location(e.path("venue").path("address").path("localized_address_display").asText(null));
+
                     ev.setEventSource(EventSource.EVENTBRITE);
                     ev.setDynamic(true);
-                    results.add(ev);
+
+                    city = e.path("venue").path("address").path("city").asText(null);
+
+                    if (Objects.equals(city, "Calgary")) {
+                        results.add(ev);
+                    }
                 }
             }
         } catch (JsonProcessingException e) {
@@ -78,7 +84,6 @@ public class EventbriteService implements EventSourceService {
         }
 
         if (!seriesEventIds.isEmpty()) {
-            // 2) Second request: fetch detailed info for all those IDs in one batch
             String idsParam = String.join(",", seriesEventIds);
             String detailUrl = UriComponentsBuilder.fromHttpUrl("https://www.eventbrite.com/api/v3/destination/events/")
                 .queryParam("event_ids", idsParam)
@@ -92,12 +97,10 @@ public class EventbriteService implements EventSourceService {
                 throw new RuntimeException("Failed to fetch event details: " + detailResponse.getStatusCode());
             }
 
-            // 3) Map the detailed JSON into your Event objects
             try {
                 JsonNode root = objectMapper.readTree(detailResponse.getBody());
                 JsonNode detailedEvents = root.path("events");
                 for (JsonNode node : detailedEvents) {
-                    //It is a parent event of series. It has start and end dates of series, not event
                     List<Event> evs = new ArrayList<>();
                     for (JsonNode seriesNode : node.get("series").get("next_dates")) {
                         Event ev = new Event();
@@ -115,11 +118,9 @@ public class EventbriteService implements EventSourceService {
                         String locationString = null;
 
                         if (!venueNode.isMissingNode() && !venueNode.isNull()) {
-                            // System.out.println("I got into the location strign part");
                             JsonNode addressNode = venueNode.path("address");
                             if (!addressNode.isMissingNode() && !addressNode.isNull()) {
                                 String address1 = addressNode.path("address_1").asText(null);
-                                System.out.println("address 1: " + address1);
                                 city = addressNode.path("city").asText(null);
                                 List<String> addressParts = new ArrayList<>();
 
@@ -135,13 +136,8 @@ public class EventbriteService implements EventSourceService {
                                 locationString = venueNode.path("name").asText(null);
                             }
                         }
-                        // System.out.println("locationString = " + locationString);
-                        // System.out.println("city = " + city);
                         ev.setEvent_location(locationString);
                         if (Objects.equals(city, "Calgary")) {
-                            System.out.println("location string: " + locationString);
-                            System.out.println("I am in calgary");
-                            ev.setEvent_location(null);
                             evs.add(ev);
                         }
                     }
