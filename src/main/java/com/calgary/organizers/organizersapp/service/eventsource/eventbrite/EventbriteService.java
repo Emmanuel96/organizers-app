@@ -1,6 +1,7 @@
 package com.calgary.organizers.organizersapp.service.eventsource.eventbrite;
 
 import com.calgary.organizers.organizersapp.domain.Event;
+import com.calgary.organizers.organizersapp.domain.Group;
 import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.service.EventService;
 import com.calgary.organizers.organizersapp.service.eventsource.EventSourceService;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Equator;
@@ -30,18 +33,18 @@ public class EventbriteService implements EventSourceService {
 
     private final RestTemplate restTemplate;
     private final EventService eventService;
+    private final ObjectMapper objectMapper;
 
-    public EventbriteService(RestTemplate restTemplate, EventService eventService) {
+    public EventbriteService(RestTemplate restTemplate, EventService eventService, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         this.eventService = eventService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public List<Event> fetchEvents(String organizerId) {
         String city = null;
         List<Event> results = new ArrayList<>();
-        ObjectMapper objectMapper = new ObjectMapper();
-
         //For this endpoint eventbrite has max page size 30. We fetch first page.
         String idOnlyUrl = "https://www.eventbrite.ca/org/" + organizerId + "/showmore/?page_size=30&type=future";
 
@@ -189,5 +192,46 @@ public class EventbriteService implements EventSourceService {
     @Override
     public void verifyOrganizerParameters(String organizerId) {
         //TODO: add verification logic
+    }
+
+    @Override
+    public String getOrganizerIdByUrl(String url) {
+        Pattern pattern = Pattern.compile("^https?://(?:www\\.)?eventbrite\\.(?:com|ca)/o/[\\w-]+-(\\d+)$");
+        Matcher m = pattern.matcher(url);
+        if (m.find()) {
+            String groupSlug = m.group(1);
+            return groupSlug;
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
+    @Override
+    public Group getOrganizerByOrganizerId(String organizerId) {
+        String url = UriComponentsBuilder.fromHttpUrl("https://www.eventbrite.com/api/v3/organizers")
+            .queryParam("ids", organizerId)
+            .queryParam("expand.organizer", "follow_status")
+            .toUriString();
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Failed to fetch organizer: " + response.getStatusCode());
+        }
+        try {
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode organizers = root.path("organizers");
+            if (!organizers.isArray() || organizers.size() == 0) {
+                throw new RuntimeException("No organizer found for id: " + organizerId);
+            }
+
+            JsonNode first = organizers.get(0);
+
+            Group group = new Group();
+            group.setEventSource(EventSource.EVENTBRITE);
+            group.setName(first.path("name").asText());
+            group.setOrganizerId(first.path("id").asText());
+            return group;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error parsing Eventbrite response", e);
+        }
     }
 }

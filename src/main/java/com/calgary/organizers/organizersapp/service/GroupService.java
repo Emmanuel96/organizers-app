@@ -2,8 +2,11 @@ package com.calgary.organizers.organizersapp.service;
 
 import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.domain.Group;
+import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.repository.GroupRepository;
 import com.calgary.organizers.organizersapp.service.eventsource.EventSourceServiceFactory;
+import com.calgary.organizers.organizersapp.web.rest.dto.CheckUrlDto;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -117,5 +120,13 @@ public class GroupService {
         List<Event> eventsOfGroup = eventService.getEventsForOrganizerId(group.getOrganizerId());
         eventService.deleteEvents(eventsOfGroup);
         groupRepository.deleteById(id);
+    }
+
+    public Group checkGroup(CheckUrlDto checkUrlDto) {
+        URI uri = URI.create(checkUrlDto.url());
+        String host = uri.getHost().toLowerCase();
+        EventSource eventSource = EventSource.fromString(host);
+        String organizerId = eventSourceServiceFactory.getOrganizerIdByUrl(eventSource, checkUrlDto.url());
+        return eventSourceServiceFactory.getOrganizerByOrganizerId(eventSource, organizerId);
     }
 }
