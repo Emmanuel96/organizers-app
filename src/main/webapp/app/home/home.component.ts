@@ -249,9 +249,9 @@ export default class HomeComponent implements OnInit, OnDestroy {
           // Determine event source and assign a color
           let eventColor = '#3788d8'; // default color
           if (value.eventSource === 'EVENTBRITE') {
-            eventColor = '#FF5733';
+            eventColor = '#B07DA7';
           } else if (value.eventSource === 'MEET_UP') {
-            eventColor = '#E51937';
+            eventColor = '#7294CD';
           }
           return {
             id: value.id.toString(),
