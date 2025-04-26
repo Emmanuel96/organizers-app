@@ -207,11 +207,11 @@ public class MeetupService implements EventSourceService {
 
     @Override
     public String getOrganizerIdByUrl(String url) {
-        Pattern p = Pattern.compile("https?://(?:www\\.)?meetup\\.com/([^/]+)/events/");
+        Pattern p = Pattern.compile("https?://(?:www\\.)?meetup\\.com/([^/]+)/.*");
         Matcher m = p.matcher(url);
         if (m.find()) {
             String groupSlug = m.group(1);
-            System.out.println(groupSlug); // prints "pxandpints"
+            System.out.println(groupSlug);
             return groupSlug;
         } else {
             throw new RuntimeException();
