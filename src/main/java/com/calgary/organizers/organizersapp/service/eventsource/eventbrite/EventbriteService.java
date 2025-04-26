@@ -38,6 +38,7 @@ public class EventbriteService implements EventSourceService {
 
     @Override
     public List<Event> fetchEvents(String organizerId) {
+        String city = null;
         List<Event> results = new ArrayList<>();
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -81,7 +82,7 @@ public class EventbriteService implements EventSourceService {
             String idsParam = String.join(",", seriesEventIds);
             String detailUrl = UriComponentsBuilder.fromHttpUrl("https://www.eventbrite.com/api/v3/destination/events/")
                 .queryParam("event_ids", idsParam)
-                .queryParam("expand", "series,primary_organizer")
+                .queryParam("expand", "series,primary_organizer,primary_venue")
                 .queryParam("page_size", 50)
                 .queryParam("include_parent_events", true)
                 .toUriString();
@@ -100,7 +101,6 @@ public class EventbriteService implements EventSourceService {
                     List<Event> evs = new ArrayList<>();
                     for (JsonNode seriesNode : node.get("series").get("next_dates")) {
                         Event ev = new Event();
-                        //TODO: get this data from Group entity
                         ev.setOrganizerId(node.path("primary_organizer_id").asText());
                         ev.setEventGroupDisplayName(node.path("primary_organizer").path("name").asText());
                         ev.setEventId(seriesNode.path("id").asText());
@@ -108,10 +108,42 @@ public class EventbriteService implements EventSourceService {
                         ev.setEvent_url(node.path("url").asText().replace(node.get("id").asText(), seriesNode.get("id").asText()));
                         ev.setEvent_description(StringUtils.left(node.path("summary").asText(), 255));
                         ev.setEvent_date(ZonedDateTime.parse(seriesNode.path("start").asText()));
-                        ev.setEvent_location(node.path("primary_venue_id").asText(null));
                         ev.setDynamic(true);
                         ev.setEventSource(EventSource.EVENTBRITE);
-                        evs.add(ev);
+
+                        JsonNode venueNode = node.path("primary_venue");
+                        String locationString = null;
+
+                        if (!venueNode.isMissingNode() && !venueNode.isNull()) {
+                            // System.out.println("I got into the location strign part");
+                            JsonNode addressNode = venueNode.path("address");
+                            if (!addressNode.isMissingNode() && !addressNode.isNull()) {
+                                String address1 = addressNode.path("address_1").asText(null);
+                                System.out.println("address 1: " + address1);
+                                city = addressNode.path("city").asText(null);
+                                List<String> addressParts = new ArrayList<>();
+
+                                if (StringUtils.isNotBlank(address1)) addressParts.add(address1);
+                                if (StringUtils.isNotBlank(city)) addressParts.add(city);
+
+                                if (!addressParts.isEmpty()) {
+                                    locationString = String.join(", ", addressParts);
+                                }
+                            }
+
+                            if (locationString == null) {
+                                locationString = venueNode.path("name").asText(null);
+                            }
+                        }
+                        // System.out.println("locationString = " + locationString);
+                        // System.out.println("city = " + city);
+                        ev.setEvent_location(locationString);
+                        if (Objects.equals(city, "Calgary")) {
+                            System.out.println("location string: " + locationString);
+                            System.out.println("I am in calgary");
+                            ev.setEvent_location(null);
+                            evs.add(ev);
+                        }
                     }
                     results.addAll(evs);
                 }
