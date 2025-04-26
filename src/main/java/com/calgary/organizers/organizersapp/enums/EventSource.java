@@ -1,7 +1,7 @@
 package com.calgary.organizers.organizersapp.enums;
 
 public enum EventSource {
-    EVENTBRITE("www.eventbrite.ca"),
+    EVENTBRITE("eventbrite"),
     MEET_UP("www.meetup.com"),
     PLATFORM("platform"),
     OTHER("other");
