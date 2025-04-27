@@ -59,26 +59,26 @@
       </div>
     </div>
   </div>
+</div>
 
-  <div class="modal fade" id="groupNameModal" aria-labelledby="groupNameModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="groupNameModalLabel">{{ eventGroup }} Group</h5>
-          <button type="button" (click)="close()" class="btn-close" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p class="fw-bold"><strong>Description Summary:</strong></p>
-          <p>{{ eventDescription }}</p>
-          <p class="fw-bold"><strong>Date:</strong></p>
-          <p>{{ eventDate }} MST</p>
-          <p class="fw-bold"><strong>Location:</strong></p>
-          <p>{{ eventLocation }}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
-          <a [href]="eventUrl" target="_blank" class="btn btn-primary">View Event</a>
-        </div>
+<div class="modal fade" id="groupNameModal" aria-labelledby="groupNameModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="groupNameModalLabel">{{ eventGroup }} Group</h5>
+        <button type="button" data-bs-dismiss="modal" (click)="close()" class="btn-close" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="fw-bold"><strong>Description Summary:</strong></p>
+        <p>{{ eventDescription }}</p>
+        <p class="fw-bold"><strong>Date:</strong></p>
+        <p>{{ eventDate }} MST</p>
+        <p class="fw-bold"><strong>Location:</strong></p>
+        <p>{{ eventLocation }}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="close()">Close</button>
+        <a [href]="eventUrl" target="_blank" class="btn btn-primary">View Event</a>
       </div>
     </div>
   </div>
