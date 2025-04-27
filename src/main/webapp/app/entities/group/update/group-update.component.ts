@@ -21,6 +21,7 @@ export class GroupUpdateComponent implements OnInit {
   isSaving = false;
   group: IGroup | null = null;
   checkingUrl = false;
+  isUrlValid = false;
 
   protected groupService = inject(GroupService);
   protected groupFormService = inject(GroupFormService);
@@ -67,6 +68,7 @@ export class GroupUpdateComponent implements OnInit {
         next: (group: IGroup) => {
           // this.updateForm will reset all controls based on your GroupFormService logic
           this.updateForm(group);
+          this.isUrlValid = true;
         },
       });
   }
