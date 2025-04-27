@@ -186,17 +186,23 @@ export default class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  close(): void {
-    const modalElement = document.getElementById('groupNameModal') as HTMLElement;
-    const modal = bootstrap.Modal.getInstance(modalElement);
-    if (modal) {
-      // eslint-disable-next-line no-console
-      console.info('Modal:', modal);
-      modal.hide();
+  ngAfterViewInit(): void {
+    const modalEl = document.getElementById('groupNameModal')!;
+    modalEl.addEventListener('hidden.bs.modal', () => {
+      // in case anything lingered…
+      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
+    });
+  }
 
-      const backdrops = document.querySelectorAll('.modal-backdrop');
-      backdrops.forEach(b => b.remove());
-    }
+  close(): void {
+    const modalEl = document.getElementById('groupNameModal')!;
+    const modal = bootstrap.Modal.getInstance(modalEl);
+
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(b => b.remove());
+
+    modal?.hide();
   }
 
   submitGroupName(): void {
