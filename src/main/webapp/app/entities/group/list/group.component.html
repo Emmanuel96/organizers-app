@@ -1,9 +1,9 @@
 <div>
-  <h2 id="page-heading" data-cy="GroupHeading">
-    <span>Groups</span>
+  <div id="page-heading" class="header" data-cy="GroupHeading">
+    <h2>Groups</h2>
 
     <div class="d-flex justify-content-end">
-      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+      <button class="btn refresh me-2" (click)="refresh()" [disabled]="isLoading">
         <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
         <span>Refresh list</span>
       </button>
@@ -15,10 +15,10 @@
         [routerLink]="['/group/new']"
       >
         <fa-icon icon="plus"></fa-icon>
-        <span>Add a new Group</span>
+        <span>Add a new group</span>
       </button>
     </div>
-  </h2>
+  </div>
 
   <jhi-alert-error></jhi-alert-error>
 
@@ -37,10 +37,10 @@
           <tr jhiSort [sortState]="sortState" (sortChange)="navigateToWithComponentValues($event)">
             <!-- <th scope="col" jhiSortBy="id"> -->
             <!-- <div class="d-flex">
-                <span>ID</span>
+              <span>ID</span>
 
-                <fa-icon class="p-1" icon="sort"></fa-icon>
-              </div> -->
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div> -->
             <!-- </th> -->
             <th scope="col" jhiSortBy="name">
               <div class="d-flex">
@@ -63,7 +63,7 @@
                 <fa-icon class="p-1"></fa-icon>
               </div>
             </th>
-            <th scope="col"></th>
+            <th scope="col" *jhiHasAnyAuthority="adminRole"></th>
           </tr>
         </thead>
         <tbody>
@@ -75,17 +75,12 @@
               <td>{{ group.name }}</td>
               <td>{{ group.organizerId }}</td>
               <td>
-                <button
-                  class="btn"
-                  [style.color]="'white'"
-                  [style.backgroundColor]="group.excluded ? 'green' : 'red'"
-                  (click)="toggleFollow(group)"
-                >
+                <button class="btn follow-btn" [ngClass]="group.excluded ? 'follow' : 'unfollow'" (click)="toggleFollow(group)">
                   {{ group.excluded ? 'Follow' : 'Unfollow' }}
                 </button>
               </td>
-              <td class="text-end">
-                <div class="btn-group" *jhiHasAnyAuthority="'ROLE_ADMIN'">
+              <td class="text-end" *jhiHasAnyAuthority="adminRole">
+                <div class="btn-group">
                   <a [routerLink]="['/group', group.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
                     <fa-icon icon="eye"></fa-icon>
                     <span class="d-none d-md-inline">View</span>
@@ -107,8 +102,7 @@
         </tbody>
       </table>
     </div>
-  }
-  @if (groups && groups.length > 0) {
+
     <div>
       <div class="d-flex justify-content-center">
         <jhi-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></jhi-item-count>
