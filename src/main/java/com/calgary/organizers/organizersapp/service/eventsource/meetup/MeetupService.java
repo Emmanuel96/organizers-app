@@ -6,26 +6,18 @@ import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.scheduled.EventEquator;
 import com.calgary.organizers.organizersapp.service.EventService;
 import com.calgary.organizers.organizersapp.service.eventsource.EventSourceService;
+import com.calgary.organizers.organizersapp.utils.meetup.MeetupDomainValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -36,12 +28,19 @@ public class MeetupService implements EventSourceService {
     private final RestTemplate restTemplate;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
+    private final List<MeetupDomainValidator> validators;
     private static final String MEETUP_GRAPHQL_API_URL = "https://api.meetup.com/gql";
 
-    public MeetupService(RestTemplate restTemplate, EventService eventService, ObjectMapper objectMapper) {
+    public MeetupService(
+        RestTemplate restTemplate,
+        EventService eventService,
+        ObjectMapper objectMapper,
+        List<MeetupDomainValidator> validators
+    ) {
         this.restTemplate = restTemplate;
         this.eventService = eventService;
         this.objectMapper = objectMapper;
+        this.validators = validators;
     }
 
     @Override
@@ -160,6 +159,10 @@ public class MeetupService implements EventSourceService {
             "    id " +
             "    name " +
             "    city " +
+            "    topics { " +
+            "        id " +
+            "        name " +
+            "        } " +
             "  topicCategory { " +
             "        id " +
             "        urlkey " +
@@ -190,15 +193,8 @@ public class MeetupService implements EventSourceService {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-            var city = rootNode.at("/data/groupByUrlname/city").asText();
-            if (!city.equals("Calgary")) {
-                throw new InvalidGroupParameterException("Group from wrong city provided. Provided '%s'".formatted(city));
-            }
-            var topicCategory = rootNode.at("/data/groupByUrlname/topicCategory/name").asText();
-            if (!topicCategory.equals("Technology")) {
-                throw new InvalidGroupParameterException(
-                    "Group from wrong topic category provided. Provided '%s'".formatted(topicCategory)
-                );
+            for (var validator : validators) {
+                validator.validate(rootNode);
             }
         } else {
             throw new GraphQLException("Failed GraphQL request with code : %s".formatted(graphqlResponse.getStatusCode().toString()));
