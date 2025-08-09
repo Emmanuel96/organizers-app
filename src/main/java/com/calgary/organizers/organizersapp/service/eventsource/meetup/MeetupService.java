@@ -119,18 +119,51 @@ public class MeetupService implements EventSourceService {
         }
     }
 
+    private String eventKey(Event e) {
+        if (e.getEventId() != null && !e.getEventId().isBlank()) return e.getEventId();
+        // Fallback composite key to avoid null collisions
+        return String.join(
+            "|",
+            String.valueOf(e.getOrganizerId()),
+            String.valueOf(e.getEvent_date()),
+            String.valueOf(e.getEvent_location())
+        );
+    }
+
     @Transactional
     @Override
     public void syncEventsForGroup(String groupName) {
         List<Event> oldEvents = eventService.getEventsForOrganizerId(groupName);
         List<Event> newEvents = fetchEvents(groupName);
-        Map<String, Event> oldEventsMap = oldEvents.stream().collect(Collectors.toMap(Event::getEventId, Function.identity()));
+        Map<String, Event> oldEventsMap = oldEvents
+            .stream()
+            .collect(
+                java.util.stream.Collectors.toMap(
+                    this::eventKey,
+                    java.util.function.Function.identity(),
+                    (a, b) -> a, // keep first on duplicate
+                    java.util.LinkedHashMap::new
+                )
+            );
         ZonedDateTime now = ZonedDateTime.now();
 
-        for (Event newEvent : newEvents) {
-            Event e = oldEventsMap.get(newEvent.getEventId());
-            if (Objects.nonNull(e)) {
-                newEvent.setId(e.getId());
+        // If you also build a map for new/incoming events, do the same, optionally preferring the newer value:
+        Map<String, Event> newEventsMap = newEvents
+            .stream()
+            .collect(
+                java.util.stream.Collectors.toMap(
+                    this::eventKey,
+                    java.util.function.Function.identity(),
+                    (a, b) -> b, // keep newer on duplicate
+                    java.util.LinkedHashMap::new
+                )
+            );
+
+        // When syncing, reuse the same key to carry over DB ids:
+        for (Event ne : newEvents) {
+            Event existing = oldEventsMap.get(eventKey(ne));
+            if (existing != null) {
+                ne.setId(existing.getId());
             }
         }
         eventService.saveEvents(newEvents);
