@@ -147,23 +147,22 @@ Main page styles
     background-color: #6c757d;
     color: #fff;
   }
+} // <-- this closes the big hi‑DPI media query
 
+/* Apply on all screens (not gated by hi‑DPI) */
+.mobile-only {
+  display: none !important;
+}
+.desktop-only {
+  display: block !important;
+}
+
+@media (max-width: 768px) {
   .mobile-only {
-    display: none;
+    display: block !important;
   }
-
   .desktop-only {
-    display: block;
-  }
-
-  @media (max-width: 768px) {
-    .mobile-only {
-      display: block;
-    }
-
-    .desktop-only {
-      display: none;
-    }
+    display: none !important;
   }
 }
 
