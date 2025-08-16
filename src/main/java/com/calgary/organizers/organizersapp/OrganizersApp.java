@@ -2,6 +2,7 @@ package com.calgary.organizers.organizersapp;
 
 import com.calgary.organizers.organizersapp.config.ApplicationProperties;
 import com.calgary.organizers.organizersapp.config.CRLFLogConverter;
+import com.calgary.organizers.organizersapp.config.UiProps;
 import jakarta.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -21,7 +22,7 @@ import tech.jhipster.config.DefaultProfileUtil;
 import tech.jhipster.config.JHipsterConstants;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class })
+@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, UiProps.class })
 @EnableScheduling
 public class OrganizersApp {
 

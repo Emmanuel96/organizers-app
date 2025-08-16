@@ -140,4 +140,9 @@ domain:
     #      - Environment
     #      - Renewable Energy
     required-topic-category: Technology
-#  eventbrite:
+  eventbrite:
+    city: Calgary
+app:
+  ui:
+    default-title: Tech Events in Calgary
+    navbar-title: Calgary Tech Events

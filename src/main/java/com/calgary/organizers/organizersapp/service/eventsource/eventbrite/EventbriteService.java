@@ -1,5 +1,6 @@
 package com.calgary.organizers.organizersapp.service.eventsource.eventbrite;
 
+import com.calgary.organizers.organizersapp.config.DomainConfig;
 import com.calgary.organizers.organizersapp.domain.Event;
 import com.calgary.organizers.organizersapp.domain.Group;
 import com.calgary.organizers.organizersapp.enums.EventSource;
@@ -34,11 +35,13 @@ public class EventbriteService implements EventSourceService {
     private final RestTemplate restTemplate;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
+    private final DomainConfig domainConfig;
 
-    public EventbriteService(RestTemplate restTemplate, EventService eventService, ObjectMapper objectMapper) {
+    public EventbriteService(RestTemplate restTemplate, EventService eventService, ObjectMapper objectMapper, DomainConfig domainConfig) {
         this.restTemplate = restTemplate;
         this.eventService = eventService;
         this.objectMapper = objectMapper;
+        this.domainConfig = domainConfig;
     }
 
     @Override
@@ -58,26 +61,26 @@ public class EventbriteService implements EventSourceService {
             JsonNode root = objectMapper.readTree(idResponse.getBody());
             JsonNode eventsArray = root.path("data").path("events");
             seriesEventIds = new ArrayList<>();
-            for (JsonNode e : eventsArray) {
-                if (e.get("is_series_parent").asBoolean()) {
-                    seriesEventIds.add(e.get("id").asText());
+            for (JsonNode jsonNode : eventsArray) {
+                if (jsonNode.get("is_series_parent").asBoolean()) {
+                    seriesEventIds.add(jsonNode.get("id").asText());
                 } else {
                     Event ev = new Event();
-                    ev.setOrganizerId(e.path("organizer").path("id").asText());
-                    ev.setEventGroupDisplayName(e.path("organizer").path("name").asText());
-                    ev.setEventId(e.path("id").asText());
-                    ev.setEventTitle(e.path("name").path("text").asText());
-                    ev.setEvent_url(e.path("url").asText());
-                    ev.setEvent_description(StringUtils.left(e.path("summary").asText(), 255));
-                    ev.setEvent_date(ZonedDateTime.parse(e.path("start").path("utc").asText()));
-                    ev.setEvent_location(e.path("venue").path("address").path("localized_address_display").asText(null));
+                    ev.setOrganizerId(jsonNode.path("organizer").path("id").asText());
+                    ev.setEventGroupDisplayName(jsonNode.path("organizer").path("name").asText());
+                    ev.setEventId(jsonNode.path("id").asText());
+                    ev.setEventTitle(jsonNode.path("name").path("text").asText());
+                    ev.setEvent_url(jsonNode.path("url").asText());
+                    ev.setEvent_description(StringUtils.left(jsonNode.path("summary").asText(), 255));
+                    ev.setEvent_date(ZonedDateTime.parse(jsonNode.path("start").path("utc").asText()));
+                    ev.setEvent_location(jsonNode.path("venue").path("address").path("localized_address_display").asText(null));
 
                     ev.setEventSource(EventSource.EVENTBRITE);
                     ev.setDynamic(true);
 
-                    city = e.path("venue").path("address").path("city").asText(null);
+                    city = jsonNode.path("venue").path("address").path("city").asText(null);
 
-                    if (Objects.equals(city, "Calgary")) {
+                    if (Objects.equals(domainConfig.getEventbrite().getCity(), city)) {
                         results.add(ev);
                     }
                 }
@@ -140,7 +143,7 @@ public class EventbriteService implements EventSourceService {
                             }
                         }
                         ev.setEvent_location(locationString);
-                        if (Objects.equals(city, "Calgary")) {
+                        if (Objects.equals(city, domainConfig.getEventbrite().getCity())) {
                             evs.add(ev);
                         }
                     }

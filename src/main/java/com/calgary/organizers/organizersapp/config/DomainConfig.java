@@ -65,13 +65,18 @@ public class DomainConfig {
     }
 
     public static class Eventbrite {
-        // add Eventbrite‑specific properties here as needed,
-        // e.g. apiKey, baseUrl, etc.
 
-        // Example placeholder:
-        // private String apiKey;
-        //
-        // public String getApiKey() { return apiKey; }
-        // public void setApiKey(String apiKey) { this.apiKey = apiKey; }
+        /**
+         * If set, only this city is allowed.
+         */
+        private String city;
+
+        public String getCity() {
+            return city;
+        }
+
+        public void setCity(String city) {
+            this.city = city;
+        }
     }
 }

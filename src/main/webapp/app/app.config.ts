@@ -24,6 +24,14 @@ import routes from './app.routes';
 import { NgbDateDayjsAdapter } from './config/datepicker-adapter';
 import { AppPageTitleStrategy } from './app-page-title-strategy';
 
+declare global {
+  interface Window {
+    __APP_CONFIG__: {
+      defaultTitle: string;
+      navbarTitle: string;
+    };
+  }
+}
 const routerFeatures: RouterFeatures[] = [
   withComponentInputBinding(),
   withNavigationErrorHandler((e: NavigationError) => {

@@ -6,7 +6,7 @@ export class AppPageTitleStrategy extends TitleStrategy {
   override updateTitle(routerState: RouterStateSnapshot): void {
     let pageTitle = this.buildTitle(routerState);
     if (!pageTitle) {
-      pageTitle = 'Tech Events in Calgary';
+      pageTitle = window.__APP_CONFIG__.defaultTitle;
     }
     document.title = pageTitle;
   }

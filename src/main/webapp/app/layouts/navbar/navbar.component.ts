@@ -18,6 +18,7 @@ import NavbarItem from './navbar-item.model';
   imports: [RouterModule, SharedModule, HasAnyAuthorityDirective],
 })
 export default class NavbarComponent implements OnInit {
+  appTitle = window.__APP_CONFIG__.navbarTitle;
   inProduction?: boolean;
   isNavbarCollapsed = signal(true);
   openAPIEnabled?: boolean;
