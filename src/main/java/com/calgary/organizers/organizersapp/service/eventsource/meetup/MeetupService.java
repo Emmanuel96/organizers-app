@@ -54,19 +54,18 @@ public class MeetupService implements EventSourceService {
         graphqlHeaders.set("Authorization", "Bearer " + jwtFlowProvider.getAccessToken());
         graphqlHeaders.set("User-Agent", "OrganizersApp/1.0");
 
-        // Create the GraphQL query
         String graphqlQuery =
             "{ \"query\": \"query ($groupUrlname: String!) { " +
             "  groupByUrlname(urlname: $groupUrlname) { " +
             "    name " +
-            "    upcomingEvents(input: $input) { " +
+            "    events(first: 10) { " +
             "      edges { " +
             "        node { " +
             "          id " +
             "          title " +
             "          description " +
             "          dateTime " +
-            "          venue { " +
+            "          venues { " +
             "            name " +
             "            address " +
             "          } " +
@@ -78,9 +77,8 @@ public class MeetupService implements EventSourceService {
             "\"variables\": { " +
             "  \"groupUrlname\": \"" +
             groupUrlName +
-            "\"" +
+            "\"" +  
             "} }";
-
         HttpEntity<String> graphqlRequest = new HttpEntity<>(graphqlQuery, graphqlHeaders);
 
         // Send request to Meetup GraphQL API
@@ -104,8 +102,7 @@ public class MeetupService implements EventSourceService {
             ZonedDateTime startOfMonth = ZonedDateTime.now().withDayOfMonth(1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
 
             List<JsonNode> allEdges = new ArrayList<>();
-            rootNode.at("/data/groupByUrlname/upcoming/edges").forEach(allEdges::add);
-            rootNode.at("/data/groupByUrlname/past/edges").forEach(allEdges::add);
+            rootNode.at("/data/groupByUrlname/events/edges").forEach(allEdges::add);
 
             for (JsonNode edge : allEdges) {
                 JsonNode eventNode = edge.get("node");
