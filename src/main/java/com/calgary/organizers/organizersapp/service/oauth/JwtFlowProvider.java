@@ -46,20 +46,30 @@ public class JwtFlowProvider {
 
     private final RestTemplate restTemplate;
 
+    private String cachedAccessToken;
+    private long tokenExpirationTime;
+
     public JwtFlowProvider() {
         this.restTemplate = new RestTemplate();
     }
 
-    public String getAccessToken() {
+    public synchronized String getAccessToken() {
+        if (cachedAccessToken != null && System.currentTimeMillis() < tokenExpirationTime) {
+            return cachedAccessToken;
+        }
         try {
             String signedJwt = createSignedJwt();
-            return requestAccessToken(signedJwt);
+            AccessTokenResponse response = requestAccessToken(signedJwt);
+            cachedAccessToken = response.accessToken();
+            // Set expiration time (subtract 60 seconds buffer)
+            tokenExpirationTime = System.currentTimeMillis() + (response.integer() * 1000) - 60000;
+            return cachedAccessToken;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private String requestAccessToken(String signedJwt) {
+    private AccessTokenResponse requestAccessToken(String signedJwt) {
         // Set up headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -68,6 +78,8 @@ public class JwtFlowProvider {
         MultiValueMap<String, String> formParams = new LinkedMultiValueMap<>();
         formParams.add("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer");
         formParams.add("assertion", signedJwt);
+        // Request basic scope explicitly
+        formParams.add("scope", "basic");
 
         // Create the request entity with headers and form parameters
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formParams, headers);
@@ -75,8 +87,7 @@ public class JwtFlowProvider {
         // Send the POST request
         return restTemplate
             .exchange("https://secure.meetup.com/oauth2/access", HttpMethod.POST, requestEntity, AccessTokenResponse.class)
-            .getBody()
-            .accessToken();
+            .getBody();
     }
 
     private String createSignedJwt() throws Exception {

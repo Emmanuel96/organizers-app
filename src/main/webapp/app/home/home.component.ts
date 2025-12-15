@@ -1,6 +1,6 @@
 declare const bootstrap: any;
 
-import { Component, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject, signal, AfterViewInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -30,7 +30,7 @@ interface TokenResponse {
   styleUrl: './home.component.scss',
   imports: [SharedModule, RouterModule, FullCalendarModule, FormsModule],
 })
-export default class HomeComponent implements OnInit, OnDestroy {
+export default class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   groupedEvents: any[] = [];
   eventTitle = '';
   eventDescription = '';
@@ -277,11 +277,14 @@ export default class HomeComponent implements OnInit, OnDestroy {
 
   groupEventsByMonth(): { month: string; events: any[] }[] {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    let futureEvents = this.events.filter(event => new Date(event.event_date) >= today);
+    let futureEvents = this.events;
+    // .filter(event => new Date(event.event_date) >= startOfMonth);
 
     futureEvents = futureEvents
-      .filter(event => new Date(event.event_date) >= today)
+      .filter(event => new Date(event.event_date) >= startOfMonth)
       .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
 
     const grouped = futureEvents.reduce((acc: Record<string, any[]>, event: any) => {
