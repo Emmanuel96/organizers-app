@@ -6,13 +6,13 @@ import com.calgary.organizers.organizersapp.enums.EventSource;
 import com.calgary.organizers.organizersapp.scheduled.EventEquator;
 import com.calgary.organizers.organizersapp.service.EventService;
 import com.calgary.organizers.organizersapp.service.eventsource.EventSourceService;
+import com.calgary.organizers.organizersapp.service.oauth.JwtFlowProvider;
 import com.calgary.organizers.organizersapp.utils.meetup.MeetupDomainValidator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -29,38 +29,42 @@ public class MeetupService implements EventSourceService {
     private final EventService eventService;
     private final ObjectMapper objectMapper;
     private final List<MeetupDomainValidator> validators;
-    private static final String MEETUP_GRAPHQL_API_URL = "https://api.meetup.com/gql";
+    private final JwtFlowProvider jwtFlowProvider;
+    private static final String MEETUP_GRAPHQL_API_URL = "https://api.meetup.com/gql-ext";
 
     public MeetupService(
         RestTemplate restTemplate,
         EventService eventService,
         ObjectMapper objectMapper,
-        List<MeetupDomainValidator> validators
+        List<MeetupDomainValidator> validators,
+        JwtFlowProvider jwtFlowProvider
     ) {
         this.restTemplate = restTemplate;
         this.eventService = eventService;
         this.objectMapper = objectMapper;
         this.validators = validators;
+        this.jwtFlowProvider = jwtFlowProvider;
     }
 
     @Override
     public List<Event> fetchEvents(String groupUrlName) {
         HttpHeaders graphqlHeaders = new HttpHeaders();
         graphqlHeaders.setContentType(MediaType.APPLICATION_JSON);
+        graphqlHeaders.set("Authorization", "Bearer " + jwtFlowProvider.getAccessToken());
+        graphqlHeaders.set("User-Agent", "OrganizersApp/1.0");
 
-        // Create the GraphQL query
         String graphqlQuery =
-            "{ \"query\": \"query ($groupUrlname: String!, $input: ConnectionInput!) { " +
+            "{ \"query\": \"query ($groupUrlname: String!) { " +
             "  groupByUrlname(urlname: $groupUrlname) { " +
             "    name " +
-            "    upcomingEvents(input: $input) { " +
+            "    events(first: 10) { " +
             "      edges { " +
             "        node { " +
             "          id " +
             "          title " +
             "          description " +
             "          dateTime " +
-            "          venue { " +
+            "          venues { " +
             "            name " +
             "            address " +
             "          } " +
@@ -72,10 +76,8 @@ public class MeetupService implements EventSourceService {
             "\"variables\": { " +
             "  \"groupUrlname\": \"" +
             groupUrlName +
-            "\", " +
-            "  \"input\": { \"first\": 10 } " +
+            "\"" +
             "} }";
-
         HttpEntity<String> graphqlRequest = new HttpEntity<>(graphqlQuery, graphqlHeaders);
 
         // Send request to Meetup GraphQL API
@@ -94,19 +96,28 @@ public class MeetupService implements EventSourceService {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-            JsonNode eventsNode = rootNode.at("/data/groupByUrlname/upcomingEvents/edges");
 
             List<Event> eventsToSave = new ArrayList<>();
-            for (JsonNode edge : eventsNode) {
+            ZonedDateTime startOfMonth = ZonedDateTime.now().withDayOfMonth(1).truncatedTo(java.time.temporal.ChronoUnit.DAYS);
+
+            List<JsonNode> allEdges = new ArrayList<>();
+            rootNode.at("/data/groupByUrlname/events/edges").forEach(allEdges::add);
+
+            for (JsonNode edge : allEdges) {
                 JsonNode eventNode = edge.get("node");
+                ZonedDateTime eventDate = ZonedDateTime.parse(eventNode.get("dateTime").asText());
+
+                if (eventDate.isBefore(startOfMonth)) {
+                    continue;
+                }
+
                 Event event = new Event();
                 event.setEvent_url("https://www.meetup.com/" + groupUrlName + "/events/" + eventNode.get("id").asText());
                 event.setEventTitle(eventNode.get("title").asText());
                 event.setEvent_description(StringUtils.left(eventNode.get("description").asText(), 255));
-                event.setEvent_date(ZonedDateTime.parse(eventNode.get("dateTime").asText()));
+                event.setEvent_date(eventDate);
                 event.setOrganizerId(groupUrlName);
-                event.setEvent_location(eventNode.at("/venue/address").asText());
-                event.setEvent_location(eventNode.at("/venue/address").asText());
+                event.setEvent_location(eventNode.at("/venues/0/address").asText());
                 event.setEventId(eventNode.get("id").asText());
                 event.setEventGroupDisplayName(rootNode.at("/data/groupByUrlname/name").asText());
                 event.setEventSource(EventSource.MEET_UP);
@@ -186,6 +197,8 @@ public class MeetupService implements EventSourceService {
     public void verifyOrganizerParameters(String organizerId) {
         HttpHeaders graphqlHeaders = new HttpHeaders();
         graphqlHeaders.setContentType(MediaType.APPLICATION_JSON);
+        graphqlHeaders.set("Authorization", "Bearer " + jwtFlowProvider.getAccessToken());
+        graphqlHeaders.set("User-Agent", "OrganizersApp/1.0");
         String graphqlQuery =
             "query GetEventsByGroup($groupUrlname: String!) { " +
             "  groupByUrlname(urlname: $groupUrlname) { " +
@@ -251,6 +264,8 @@ public class MeetupService implements EventSourceService {
     public Group getOrganizerByOrganizerId(String organizerId) {
         HttpHeaders graphqlHeaders = new HttpHeaders();
         graphqlHeaders.setContentType(MediaType.APPLICATION_JSON);
+        graphqlHeaders.set("Authorization", "Bearer " + jwtFlowProvider.getAccessToken());
+        graphqlHeaders.set("User-Agent", "OrganizersApp/1.0");
 
         // Create the GraphQL query
         String graphqlQuery =
