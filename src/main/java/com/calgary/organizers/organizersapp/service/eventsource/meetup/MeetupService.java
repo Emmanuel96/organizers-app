@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -77,7 +76,7 @@ public class MeetupService implements EventSourceService {
             "\"variables\": { " +
             "  \"groupUrlname\": \"" +
             groupUrlName +
-            "\"" +  
+            "\"" +
             "} }";
         HttpEntity<String> graphqlRequest = new HttpEntity<>(graphqlQuery, graphqlHeaders);
 
@@ -118,7 +117,7 @@ public class MeetupService implements EventSourceService {
                 event.setEvent_description(StringUtils.left(eventNode.get("description").asText(), 255));
                 event.setEvent_date(eventDate);
                 event.setOrganizerId(groupUrlName);
-                event.setEvent_location(eventNode.at("/venue/address").asText());
+                event.setEvent_location(eventNode.at("/venues/0/address").asText());
                 event.setEventId(eventNode.get("id").asText());
                 event.setEventGroupDisplayName(rootNode.at("/data/groupByUrlname/name").asText());
                 event.setEventSource(EventSource.MEET_UP);
