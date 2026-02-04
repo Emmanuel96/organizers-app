@@ -1,12 +1,10 @@
-import { Component, NgZone, OnInit, inject } from '@angular/core';
-import { HttpHeaders } from '@angular/common/http';
+import { ChangeDetectorRef, Component, inject, NgZone, NO_ERRORS_SCHEMA, OnInit } from '@angular/core';
 import { ActivatedRoute, Data, ParamMap, Router, RouterModule } from '@angular/router';
-import { Observable, Subscription, combineLatest, filter, forkJoin, map, tap } from 'rxjs';
+import { combineLatest, debounceTime, filter, forkJoin, map, Observable, Subject, switchMap, take, tap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import SharedModule from 'app/shared/shared.module';
 import { SortByDirective, SortDirective, SortService, type SortState, sortStateSignal } from 'app/shared/sort';
-import { DurationPipe, FormatMediumDatePipe, FormatMediumDatetimePipe } from 'app/shared/date';
 import { ItemCountComponent } from 'app/shared/pagination';
 import { FormsModule } from '@angular/forms';
 
@@ -15,30 +13,21 @@ import { DEFAULT_SORT_DATA, ITEM_DELETED_EVENT, SORT } from 'app/config/navigati
 import { IGroup } from '../group.model';
 import { EntityArrayResponseType, GroupService } from '../service/group.service';
 import { GroupDeleteDialogComponent } from '../delete/group-delete-dialog.component';
+import { UnsubscribeHook } from '../../../shared/hooks/unsubscribe.hook';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   standalone: true,
   selector: 'jhi-group',
+  styleUrls: ['./group.component.scss'],
   templateUrl: './group.component.html',
-  imports: [
-    RouterModule,
-    FormsModule,
-    SharedModule,
-    SortDirective,
-    SortByDirective,
-    DurationPipe,
-    FormatMediumDatetimePipe,
-    FormatMediumDatePipe,
-    ItemCountComponent,
-  ],
+  schemas: [NO_ERRORS_SCHEMA],
+  imports: [RouterModule, FormsModule, SharedModule, SortDirective, SortByDirective, ItemCountComponent],
 })
-export class GroupComponent implements OnInit {
-  subscription: Subscription | null = null;
+export class GroupComponent extends UnsubscribeHook implements OnInit {
   groups?: IGroup[];
   isLoading = false;
-
   sortState = sortStateSignal({});
-
   itemsPerPage = ITEMS_PER_PAGE;
   totalItems = 0;
   page = 1;
@@ -49,36 +38,33 @@ export class GroupComponent implements OnInit {
   protected sortService = inject(SortService);
   protected modalService = inject(NgbModal);
   protected ngZone = inject(NgZone);
+  protected cd = inject(ChangeDetectorRef);
+
+  protected readonly adminRole: string = 'ROLE_ADMIN';
+  private subject$ = new Subject<void>();
 
   trackId = (item: IGroup): number => this.groupService.getGroupIdentifier(item);
 
   ngOnInit(): void {
-    this.subscription = combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data])
-      .pipe(
-        tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
-        tap(() => this.load()),
-      )
-      .subscribe();
+    this.initRefresh();
+    this.getInitDataFromRoute();
   }
+
+  refresh = (): void => {
+    this.subject$.next();
+  };
 
   delete(group: IGroup): void {
     const modalRef = this.modalService.open(GroupDeleteDialogComponent, { size: 'lg', backdrop: 'static' });
+
     modalRef.componentInstance.group = group;
     // unsubscribe not needed because closed completes on modal close
     modalRef.closed
       .pipe(
         filter(reason => reason === ITEM_DELETED_EVENT),
-        tap(() => this.load()),
+        take(1),
       )
-      .subscribe();
-  }
-
-  load(): void {
-    this.queryBackend().subscribe({
-      next: (res: EntityArrayResponseType) => {
-        this.onResponseSuccess(res);
-      },
-    });
+      .subscribe(this.refresh);
   }
 
   navigateToWithComponentValues(event: SortState): void {
@@ -89,49 +75,44 @@ export class GroupComponent implements OnInit {
     this.handleNavigation(page, this.sortState());
   }
 
-  protected fillComponentAttributeFromRoute(params: ParamMap, data: Data): void {
-    const page = params.get(PAGE_HEADER);
-    this.page = +(page ?? 1);
-    this.sortState.set(this.sortService.parseSortParam(params.get(SORT) ?? data[DEFAULT_SORT_DATA]));
+  // @typescript-eslint/member-ordering
+  protected toggleFollow(group: IGroup): void {
+    // Toggle the excluded flag
+    group.excluded = !group.excluded;
+    // Call the service to persist the change
+    this.groupService
+      .updateFollowStatus(group.id, group.excluded)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next() {
+          // Optionally update UI or show a toast message
+        },
+        error() {
+          // If the update fails, you might want to revert the toggle in the UI.
+          group.excluded = !group.excluded;
+        },
+      });
   }
 
-  protected onResponseSuccess(response: EntityArrayResponseType): void {
-    this.fillComponentAttributesFromResponseHeader(response.headers);
-    const dataFromBody = this.fillComponentAttributesFromResponseBody(response.body);
-    this.groups = dataFromBody;
+  private initRefresh(): void {
+    this.subject$.pipe(takeUntil(this.destroy$), debounceTime(500), switchMap(this.queryBackend)).subscribe();
+  }
+
+  private onResponseSuccess = (response: EntityArrayResponseType): void => {
+    this.totalItems = Number(response.headers.get(TOTAL_COUNT_RESPONSE_HEADER));
+    this.groups = response.body ?? [];
 
     // eslint-disable-next-line no-console
     console.info('Groups:', this.groups);
-  }
-
-  protected fillComponentAttributesFromResponseBody(data: IGroup[] | null): IGroup[] {
-    return data ?? [];
-  }
-
-  protected fillComponentAttributesFromResponseHeader(headers: HttpHeaders): void {
-    this.totalItems = Number(headers.get(TOTAL_COUNT_RESPONSE_HEADER));
-  }
-
-  // protected queryBackend(): Observable<EntityArrayResponseType> {
-  //   const { page } = this;
-
-  //   this.isLoading = true;
-  //   const pageToLoad: number = page;
-  //   const queryObject: any = {
-  //     page: pageToLoad - 1,
-  //     size: this.itemsPerPage,
-  //     sort: this.sortService.buildSortParam(this.sortState()),
-  //   };
-  //   return this.groupService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
-  // }
+  };
 
   // Adjust the type according to your actual response type
-  protected queryBackend(): Observable<EntityArrayResponseType> {
-    const { page } = this;
+  private queryBackend = (): Observable<EntityArrayResponseType> => {
     this.isLoading = true;
-    const pageToLoad: number = page;
+    this.cd.detectChanges();
+
     const queryObject: any = {
-      page: pageToLoad - 1,
+      page: this.page - 1,
       size: this.itemsPerPage,
       sort: this.sortService.buildSortParam(this.sortState()),
     };
@@ -143,38 +124,29 @@ export class GroupComponent implements OnInit {
       map(({ groupsResponse, excludedGroups }) => {
         // Assuming groupsResponse.body is the array of groups
         const excludedIds = new Set<number>();
+
         if (excludedGroups.body) {
           for (const group of excludedGroups.body) {
             excludedIds.add(group.id);
           }
         }
+
         groupsResponse.body?.forEach((group: any) => {
           // Add a new property to indicate if the group is excluded
           group.excluded = excludedIds.has(group.id);
         });
+
         return groupsResponse;
       }),
-      tap(() => (this.isLoading = false)),
+      tap(() => {
+        this.isLoading = false;
+        this.cd.detectChanges();
+      }),
+      tap(this.onResponseSuccess),
     );
-  }
+  };
 
-  // @typescript-eslint/member-ordering
-  protected toggleFollow(group: IGroup): void {
-    // Toggle the excluded flag
-    group.excluded = !group.excluded;
-    // Call the service to persist the change
-    this.groupService.updateFollowStatus(group.id, group.excluded).subscribe({
-      next() {
-        // Optionally update UI or show a toast message
-      },
-      error() {
-        // If the update fails, you might want to revert the toggle in the UI.
-        group.excluded = !group.excluded;
-      },
-    });
-  }
-
-  protected handleNavigation(page: number, sortState: SortState): void {
+  private handleNavigation(page: number, sortState: SortState): void {
     const queryParamsObj = {
       page,
       size: this.itemsPerPage,
@@ -187,5 +159,20 @@ export class GroupComponent implements OnInit {
         queryParams: queryParamsObj,
       });
     });
+  }
+
+  private getInitDataFromRoute(): void {
+    combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data])
+      .pipe(
+        takeUntil(this.destroy$),
+        tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
+      )
+      .subscribe(this.refresh);
+  }
+
+  private fillComponentAttributeFromRoute(params: ParamMap, data: Data): void {
+    const page = params.get(PAGE_HEADER);
+    this.page = +(page ?? 1);
+    this.sortState.set(this.sortService.parseSortParam(params.get(SORT) ?? data[DEFAULT_SORT_DATA]));
   }
 }

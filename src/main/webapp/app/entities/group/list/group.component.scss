@@ -1,0 +1,39 @@
+.follow-btn {
+  color: white;
+
+  &.follow {
+    background-color: #639663;
+
+    &:hover {
+      background-color: #2d782d;
+    }
+  }
+
+  &.unfollow {
+    background-color: #797070;
+    &:hover {
+      background-color: #605959;
+    }
+  }
+}
+
+.refresh {
+  background-color: lightgray;
+
+  &:hover {
+    background-color: #b8b8b8;
+  }
+}
+
+.create-group {
+  background-color: #4d85d8;
+  &:hover {
+    background: #0d6efd;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
